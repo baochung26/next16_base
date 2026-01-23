@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 import {
   Card,
   CardContent,
@@ -34,6 +35,7 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refetch } = useAuth();
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +88,9 @@ export default function LoginPage() {
         }
       }
 
+      // Refetch user data to ensure AuthContext is updated
+      await refetch();
+
       // Redirect to home
       router.push("/");
       router.refresh();
@@ -104,7 +109,7 @@ export default function LoginPage() {
       // Google OAuth will be handled by backend later
       setError("Google login sẽ được tích hợp với backend NestJS");
       setIsLoading(false);
-    } catch (err) {
+    } catch {
       setError("Có lỗi xảy ra khi đăng nhập với Google");
       setIsLoading(false);
     }
