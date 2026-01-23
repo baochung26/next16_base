@@ -1,0 +1,31 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "username": "admin",
+    "email": "admin@example.com",
+    "password": "$2b$10$CQMLc2qi24HYYyNB8eJOPOvye8shIUkRQXlRHAJJNWbsO1SphY0Fy",
+    "name": "Admin User",
+    "provider": "credentials",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "password": "$2b$10$QfV4Bk72oFsRMEhwojk2UeOzLZabe.T8iFbByB1OsqG7sh3YLMz7i",
+    "name": "John Doe",
+    "provider": "credentials",
+    "createdAt": "2024-01-02T00:00:00.000Z",
+    "updatedAt": "2024-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "email": "user@example.com",
+    "password": "$2b$10$ie3mM6FVsA0AU4ehLTweVu8/xVpSPixcPJEx3YUSgV0VPeNsbStlG",
+    "name": "Test User",
+    "provider": "credentials",
+    "createdAt": "2024-01-03T00:00:00.000Z",
+    "updatedAt": "2024-01-03T00:00:00.000Z"
+  }
+]
