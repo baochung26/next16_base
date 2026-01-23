@@ -1,0 +1,170 @@
+# Documentation Index
+
+Tài liệu đầy đủ cho project development.
+
+## 📚 Tài liệu theo chủ đề
+
+### 🚀 Getting Started
+
+- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Hướng dẫn bắt đầu phát triển
+  - Setup project
+  - Development workflow
+  - Coding standards
+  - Adding new features
+  - Testing
+
+### 🏗️ Architecture & Design
+
+- **[Architecture Overview](./ARCHITECTURE.md)** - Tổng quan kiến trúc
+  - Technology stack
+  - Architecture patterns
+  - Data flow
+  - Authentication flow
+  - API architecture
+
+- **[Coding Standards](./CODING_STANDARDS.md)** - Chuẩn code
+  - TypeScript standards
+  - React standards
+  - File organization
+  - Naming conventions
+  - Code style
+
+### 🔧 Development
+
+- **[Feature Development Guide](./FEATURE_DEVELOPMENT.md)** - Phát triển feature mới
+  - Feature planning
+  - Development steps
+  - Complete examples
+  - Best practices
+
+- **[API Usage Guide](./API_USAGE.md)** - Sử dụng API
+  - API structure
+  - Service usage
+  - Error handling
+  - Token management
+
+- **[UI & Layout Guide](./UI_LAYOUT.md)** - UI components và layouts
+  - shadcn/ui components
+  - Layout components
+  - Styling guidelines
+  - Theming
+
+### 🔄 Workflow
+
+- **[Git Workflow](./GIT_WORKFLOW.md)** - Quy trình Git
+  - Branch strategy
+  - Commit messages
+  - Pull request process
+  - Code review guidelines
+
+### 🚢 Deployment
+
+- **[Deployment Guide](./DEPLOYMENT.md)** - Deploy project
+  - Prerequisites
+  - Vercel deployment
+  - Other platforms
+  - Docker deployment
+  - Post-deployment
+
+### 🐛 Troubleshooting
+
+- **[Troubleshooting Guide](./TROUBLESHOOTING.md)** - Xử lý lỗi
+  - Common errors
+  - Build issues
+  - Runtime errors
+  - API issues
+  - Authentication issues
+
+### 📖 Reference
+
+- **[State Management Guide](./STATE_MANAGEMENT.md)** - Quản lý state
+  - Current approach
+  - State types
+  - Best practices
+  - Future improvements
+
+- **[MOCK_USERS.md](./MOCK_USERS.md)** - Mock user data
+  - Test accounts
+  - User roles
+  - Password information
+
+## 🗺️ Navigation Guide
+
+### Cho người mới bắt đầu
+
+1. Đọc [Development Guide](./DEVELOPMENT_GUIDE.md) để setup
+2. Xem [Architecture Overview](./ARCHITECTURE.md) để hiểu cấu trúc
+3. Tham khảo [Coding Standards](./CODING_STANDARDS.md) khi code
+
+### Cho developer
+
+1. [Feature Development Guide](./FEATURE_DEVELOPMENT.md) - Phát triển feature
+2. [API Usage Guide](./API_USAGE.md) - Tích hợp API
+3. [UI Layout Guide](./UI_LAYOUT.md) - Tạo UI components
+
+### Cho team lead
+
+1. [Git Workflow](./GIT_WORKFLOW.md) - Quy trình Git
+2. [Coding Standards](./CODING_STANDARDS.md) - Chuẩn code
+3. [Architecture Overview](./ARCHITECTURE.md) - Kiến trúc
+
+### Cho DevOps
+
+1. [Deployment Guide](./DEPLOYMENT.md) - Deploy project
+2. [Troubleshooting Guide](./TROUBLESHOOTING.md) - Xử lý lỗi
+
+## 📋 Quick Reference
+
+### Common Tasks
+
+| Task                | Document                                                    |
+| ------------------- | ----------------------------------------------------------- |
+| Setup project       | [Development Guide](./DEVELOPMENT_GUIDE.md#getting-started) |
+| Add new feature     | [Feature Development Guide](./FEATURE_DEVELOPMENT.md)       |
+| Use API             | [API Usage Guide](./API_USAGE.md)                           |
+| Create UI component | [UI Layout Guide](./UI_LAYOUT.md)                           |
+| Fix error           | [Troubleshooting Guide](./TROUBLESHOOTING.md)               |
+| Deploy              | [Deployment Guide](./DEPLOYMENT.md)                         |
+| Git workflow        | [Git Workflow](./GIT_WORKFLOW.md)                           |
+
+### Code Examples
+
+- **API Service**: [API Usage Guide](./API_USAGE.md#sử-dụng-services)
+- **Component**: [UI Layout Guide](./UI_LAYOUT.md#components)
+- **Feature**: [Feature Development Guide](./FEATURE_DEVELOPMENT.md#example-user-management-feature)
+
+## 🔍 Search Documentation
+
+Sử dụng search trong IDE hoặc GitHub để tìm:
+
+- Function names
+- Component names
+- API endpoints
+- Error messages
+
+## 📝 Contributing to Documentation
+
+Khi cập nhật documentation:
+
+1. Follow markdown format
+2. Use clear headings
+3. Include code examples
+4. Update index if needed
+5. Test code examples
+
+## 📞 Support
+
+Nếu cần hỗ trợ:
+
+1. Check [Troubleshooting Guide](./TROUBLESHOOTING.md)
+2. Search existing documentation
+3. Check GitHub issues
+4. Create new issue
+
+## 📚 External Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Documentation](https://react.dev)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [shadcn/ui Documentation](https://ui.shadcn.com)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)

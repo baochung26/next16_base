@@ -111,7 +111,8 @@ export default function FeaturesPage() {
     {
       icon: Bell,
       title: "Thông báo real-time",
-      description: "Toast notifications với màu sắc rõ ràng và animations mượt mà",
+      description:
+        "Toast notifications với màu sắc rõ ràng và animations mượt mà",
     },
     {
       icon: Settings,
@@ -121,7 +122,8 @@ export default function FeaturesPage() {
     {
       icon: Code,
       title: "TypeScript",
-      description: "100% TypeScript cho type safety và developer experience tốt hơn",
+      description:
+        "100% TypeScript cho type safety và developer experience tốt hơn",
     },
     {
       icon: Globe,
@@ -153,16 +155,14 @@ export default function FeaturesPage() {
           <div className="mx-auto max-w-3xl text-center">
             <div className="mb-8 inline-flex items-center gap-2 rounded-full border bg-background px-4 py-2 text-sm">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-muted-foreground">
-                Tính năng nổi bật
-              </span>
+              <span className="text-muted-foreground">Tính năng nổi bật</span>
             </div>
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               Tất cả những gì bạn cần
             </h1>
             <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
-              Khám phá các tính năng mạnh mẽ giúp bạn xây dựng ứng dụng hiện
-              đại và chuyên nghiệp.
+              Khám phá các tính năng mạnh mẽ giúp bạn xây dựng ứng dụng hiện đại
+              và chuyên nghiệp.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button size="lg" asChild>
@@ -209,7 +209,10 @@ export default function FeaturesPage() {
                   <CardContent className="flex-1">
                     <ul className="space-y-2">
                       {feature.features.map((item) => (
-                        <li key={item} className="flex items-center gap-2 text-sm">
+                        <li
+                          key={item}
+                          className="flex items-center gap-2 text-sm"
+                        >
                           <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
                           <span className="text-muted-foreground">{item}</span>
                         </li>

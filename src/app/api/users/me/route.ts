@@ -17,11 +17,11 @@ export async function GET(request: NextRequest) {
 
     // Extract token
     const token = authHeader.replace("Bearer ", "");
-    
+
     // For fake API: Extract user ID from token format "fake-jwt-token-{userId}-{random}"
     // In real backend, JWT will be decoded to get user ID
     let userId: string | null = null;
-    
+
     if (token.startsWith("fake-jwt-token-")) {
       // Extract user ID from fake token
       // Format: fake-jwt-token-{userId}|{random}
@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
       // For now, return error
       return NextResponse.json(
         {
-          message: "Token validation not implemented for fake API. Please use fake token.",
+          message:
+            "Token validation not implemented for fake API. Please use fake token.",
           statusCode: 401,
         },
         { status: 401 }

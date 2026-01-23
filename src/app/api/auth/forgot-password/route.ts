@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const validatedData = forgotPasswordSchema.parse(body);
 
     const user = getUserByEmail(validatedData.email);
-    
+
     // Always return success to prevent email enumeration
     if (!user) {
       return NextResponse.json(
@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
 
     // In production, send email with reset link
     // For now, we'll just return the token (remove this in production!)
-    const resetLink = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
-    
+    const resetLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/auth/reset-password?token=${resetToken}`;
+
     console.log("Reset password link:", resetLink); // Remove in production!
 
     return NextResponse.json(
@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
         data: {
           message: "Nếu email tồn tại, chúng tôi đã gửi link reset password",
           // Remove this in production - only for development
-          resetLink: process.env.NODE_ENV === "development" ? resetLink : undefined,
+          resetLink:
+            process.env.NODE_ENV === "development" ? resetLink : undefined,
         },
         message: "Nếu email tồn tại, chúng tôi đã gửi link reset password",
         statusCode: 200,

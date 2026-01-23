@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { userService, authService } from "@/services";
 import { getErrorMessage } from "@/lib/api/error-handler";
 import { clearTokens } from "@/lib/api/token";
+import { useAuth } from "@/contexts/auth-context";
 import {
   User,
   Mail,
@@ -70,8 +71,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, setUser, refetch } = useAuth();
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState(false);
@@ -98,25 +98,14 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await userService.getCurrentUser();
-        setUser(userData);
-        profileForm.reset({
-          name: userData.name || "",
-          username: userData.username || "",
-          email: userData.email,
-        });
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        router.push("/auth/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [router, profileForm]);
+    if (user) {
+      profileForm.reset({
+        name: user.name || "",
+        username: user.username || "",
+        email: user.email,
+      });
+    }
+  }, [user, profileForm]);
 
   const onProfileSubmit = async (data: ProfileFormData) => {
     setProfileError("");
@@ -173,9 +162,8 @@ export default function ProfilePage() {
     setProfileError("");
 
     try {
-      const response = await userService.uploadAvatar(file);
-      const updatedUser = await userService.getCurrentUser();
-      setUser(updatedUser);
+      await userService.uploadAvatar(file);
+      await refetch(); // Refetch user data after avatar upload
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
     } catch (error) {
@@ -354,10 +342,7 @@ export default function ProfilePage() {
                           <FormItem>
                             <FormLabel>Username</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Nhập username"
-                                {...field}
-                              />
+                              <Input placeholder="Nhập username" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

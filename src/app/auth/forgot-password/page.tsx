@@ -88,11 +88,15 @@ export default function ForgotPasswordPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Vui lòng kiểm tra hộp thư đến của bạn và làm theo hướng dẫn để đặt lại mật khẩu.
+              Vui lòng kiểm tra hộp thư đến của bạn và làm theo hướng dẫn để đặt
+              lại mật khẩu.
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Link href="/auth/login" className="text-sm text-primary hover:underline">
+            <Link
+              href="/auth/login"
+              className="text-sm text-primary hover:underline"
+            >
               Quay lại đăng nhập
             </Link>
           </CardFooter>
@@ -161,7 +165,10 @@ export default function ForgotPasswordPage() {
           </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Link href="/auth/login" className="text-sm text-primary hover:underline">
+          <Link
+            href="/auth/login"
+            className="text-sm text-primary hover:underline"
+          >
             Quay lại đăng nhập
           </Link>
         </CardFooter>

@@ -1,9 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
+import fs from "fs";
+import path from "path";
+import bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 
-const usersFilePath = path.join(process.cwd(), 'src/lib/db/users.json');
+const usersFilePath = path.join(process.cwd(), "src/lib/db/users.json");
 
 export interface User {
   id: string;
@@ -13,7 +13,7 @@ export interface User {
   name?: string;
   image?: string;
   emailVerified?: Date;
-  provider: 'credentials' | 'google';
+  provider: "credentials" | "google";
   providerId?: string; // for OAuth providers
   createdAt: string;
   updatedAt: string;
@@ -33,20 +33,20 @@ export function getUsers(): User[] {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
+
     // If file doesn't exist, create it with empty array
     if (!fs.existsSync(usersFilePath)) {
       fs.writeFileSync(usersFilePath, JSON.stringify([], null, 2));
       return [];
     }
-    
-    const data = fs.readFileSync(usersFilePath, 'utf-8');
-    if (!data || data.trim() === '') {
+
+    const data = fs.readFileSync(usersFilePath, "utf-8");
+    if (!data || data.trim() === "") {
       return [];
     }
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading users file:', error);
+    console.error("Error reading users file:", error);
     return [];
   }
 }
@@ -59,16 +59,18 @@ export function saveUsers(users: User[]): void {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
+
+    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), "utf-8");
   } catch (error) {
-    console.error('Error writing users file:', error);
+    console.error("Error writing users file:", error);
     throw error;
   }
 }
 
 // User operations
-export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+export async function createUser(
+  userData: Omit<User, "id" | "createdAt" | "updatedAt">
+): Promise<User> {
   const users = getUsers();
   const newUser: User = {
     ...userData,
@@ -76,12 +78,12 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'upda
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  
+
   // Hash password if provided
   if (newUser.password) {
     newUser.password = await bcrypt.hash(newUser.password, 10);
   }
-  
+
   users.push(newUser);
   saveUsers(users);
   return newUser;
@@ -89,64 +91,77 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'upda
 
 export function getUserByEmail(email: string): User | undefined {
   const users = getUsers();
-  return users.find(user => user.email.toLowerCase() === email.toLowerCase());
+  return users.find((user) => user.email.toLowerCase() === email.toLowerCase());
 }
 
 export function getUserByUsername(username: string): User | undefined {
   const users = getUsers();
-  return users.find(user => user.username?.toLowerCase() === username.toLowerCase());
+  return users.find(
+    (user) => user.username?.toLowerCase() === username.toLowerCase()
+  );
 }
 
 export function getUserByEmailOrUsername(identifier: string): User | undefined {
   try {
     const users = getUsers();
     if (!Array.isArray(users)) {
-      console.error('Users is not an array:', users);
+      console.error("Users is not an array:", users);
       return undefined;
     }
     return users.find(
-      user => 
+      (user) =>
         user?.email?.toLowerCase() === identifier.toLowerCase() ||
         user?.username?.toLowerCase() === identifier.toLowerCase()
     );
   } catch (error) {
-    console.error('Error in getUserByEmailOrUsername:', error);
+    console.error("Error in getUserByEmailOrUsername:", error);
     return undefined;
   }
 }
 
 export function getUserById(id: string): User | undefined {
   const users = getUsers();
-  return users.find(user => user.id === id);
+  return users.find((user) => user.id === id);
 }
 
-export function getUserByProviderId(provider: string, providerId: string): User | undefined {
+export function getUserByProviderId(
+  provider: string,
+  providerId: string
+): User | undefined {
   const users = getUsers();
-  return users.find(user => user.provider === provider && user.providerId === providerId);
+  return users.find(
+    (user) => user.provider === provider && user.providerId === providerId
+  );
 }
 
-export async function updateUser(id: string, updates: Partial<User>): Promise<User | null> {
+export async function updateUser(
+  id: string,
+  updates: Partial<User>
+): Promise<User | null> {
   const users = getUsers();
-  const userIndex = users.findIndex(user => user.id === id);
-  
+  const userIndex = users.findIndex((user) => user.id === id);
+
   if (userIndex === -1) return null;
-  
+
   // Hash password if being updated
   if (updates.password) {
     updates.password = await bcrypt.hash(updates.password, 10);
   }
-  
+
   users[userIndex] = {
     ...users[userIndex],
     ...updates,
     updatedAt: new Date().toISOString(),
   };
-  
+
   saveUsers(users);
   return users[userIndex];
 }
 
-export async function verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+export async function verifyPassword(
+  plainPassword: string,
+  hashedPassword: string
+): Promise<boolean> {
   return bcrypt.compare(plainPassword, hashedPassword);
 }
 
@@ -156,26 +171,28 @@ const resetTokens = new Map<string, PasswordResetToken>();
 export function createPasswordResetToken(userId: string): string {
   const token = randomUUID();
   const expiresAt = new Date(Date.now() + 3600000).toISOString(); // 1 hour
-  
+
   resetTokens.set(token, {
     userId,
     token,
     expiresAt,
   });
-  
+
   return token;
 }
 
-export function getPasswordResetToken(token: string): PasswordResetToken | undefined {
+export function getPasswordResetToken(
+  token: string
+): PasswordResetToken | undefined {
   const resetToken = resetTokens.get(token);
   if (!resetToken) return undefined;
-  
+
   // Check if expired
   if (new Date(resetToken.expiresAt) < new Date()) {
     resetTokens.delete(token);
     return undefined;
   }
-  
+
   return resetToken;
 }
 

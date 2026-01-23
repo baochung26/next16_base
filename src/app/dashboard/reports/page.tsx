@@ -49,7 +49,9 @@ export default async function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">$124,567</div>
-              <p className="text-xs text-muted-foreground">+15.3% so với tháng trước</p>
+              <p className="text-xs text-muted-foreground">
+                +15.3% so với tháng trước
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -59,7 +61,9 @@ export default async function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">1,234</div>
-              <p className="text-xs text-muted-foreground">+8.2% so với tháng trước</p>
+              <p className="text-xs text-muted-foreground">
+                +8.2% so với tháng trước
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -69,17 +73,23 @@ export default async function ReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">856</div>
-              <p className="text-xs text-muted-foreground">+12.5% so với tháng trước</p>
+              <p className="text-xs text-muted-foreground">
+                +12.5% so với tháng trước
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tỷ lệ chuyển đổi</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Tỷ lệ chuyển đổi
+              </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">3.2%</div>
-              <p className="text-xs text-muted-foreground">+0.5% so với tháng trước</p>
+              <p className="text-xs text-muted-foreground">
+                +0.5% so với tháng trước
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -93,7 +103,9 @@ export default async function ReportsPage() {
             <CardContent>
               <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
                 <BarChart3 className="h-12 w-12 text-muted-foreground" />
-                <p className="ml-2 text-muted-foreground">Biểu đồ sẽ được hiển thị ở đây</p>
+                <p className="ml-2 text-muted-foreground">
+                  Biểu đồ sẽ được hiển thị ở đây
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -105,7 +117,9 @@ export default async function ReportsPage() {
             <CardContent>
               <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
                 <TrendingUp className="h-12 w-12 text-muted-foreground" />
-                <p className="ml-2 text-muted-foreground">Biểu đồ sẽ được hiển thị ở đây</p>
+                <p className="ml-2 text-muted-foreground">
+                  Biểu đồ sẽ được hiển thị ở đây
+                </p>
               </div>
             </CardContent>
           </Card>

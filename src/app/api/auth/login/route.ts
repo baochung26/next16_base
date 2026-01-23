@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  getUserByEmailOrUsername,
-  verifyPassword,
-} from "@/lib/db";
+import { getUserByEmailOrUsername, verifyPassword } from "@/lib/db";
 import { randomUUID } from "crypto";
 
 const loginSchema = z.object({

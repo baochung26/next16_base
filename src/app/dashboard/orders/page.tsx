@@ -9,7 +9,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Search, MoreVertical, CheckCircle2, Clock, XCircle } from "lucide-react";
+import {
+  ShoppingCart,
+  Search,
+  MoreVertical,
+  CheckCircle2,
+  Clock,
+  XCircle,
+} from "lucide-react";
 
 export default async function OrdersPage() {
   let user;
@@ -88,7 +95,9 @@ export default async function OrdersPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Quản lý đơn hàng</h2>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Quản lý đơn hàng
+          </h2>
           <p className="text-muted-foreground">
             Theo dõi và quản lý tất cả đơn hàng
           </p>
@@ -97,12 +106,16 @@ export default async function OrdersPage() {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tổng đơn hàng</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Tổng đơn hàng
+              </CardTitle>
               <ShoppingCart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">1,234</div>
-              <p className="text-xs text-muted-foreground">+15 từ tháng trước</p>
+              <p className="text-xs text-muted-foreground">
+                +15 từ tháng trước
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -112,7 +125,9 @@ export default async function OrdersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">45</div>
-              <p className="text-xs text-muted-foreground">Đơn hàng chờ xử lý</p>
+              <p className="text-xs text-muted-foreground">
+                Đơn hàng chờ xử lý
+              </p>
             </CardContent>
           </Card>
           <Card>
@@ -163,13 +178,25 @@ export default async function OrdersPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-4 text-sm font-medium">Mã đơn</th>
-                    <th className="text-left p-4 text-sm font-medium">Khách hàng</th>
-                    <th className="text-left p-4 text-sm font-medium">Sản phẩm</th>
-                    <th className="text-left p-4 text-sm font-medium">Số tiền</th>
-                    <th className="text-left p-4 text-sm font-medium">Trạng thái</th>
+                    <th className="text-left p-4 text-sm font-medium">
+                      Mã đơn
+                    </th>
+                    <th className="text-left p-4 text-sm font-medium">
+                      Khách hàng
+                    </th>
+                    <th className="text-left p-4 text-sm font-medium">
+                      Sản phẩm
+                    </th>
+                    <th className="text-left p-4 text-sm font-medium">
+                      Số tiền
+                    </th>
+                    <th className="text-left p-4 text-sm font-medium">
+                      Trạng thái
+                    </th>
                     <th className="text-left p-4 text-sm font-medium">Ngày</th>
-                    <th className="text-right p-4 text-sm font-medium">Thao tác</th>
+                    <th className="text-right p-4 text-sm font-medium">
+                      Thao tác
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

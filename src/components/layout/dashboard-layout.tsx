@@ -28,10 +28,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { clearTokens, hasToken, getUserInfo } from "@/lib/api/token";
-import { userService } from "@/services";
+import { clearTokens } from "@/lib/api/token";
 import { getUserDisplayName, getUserInitials } from "@/lib/utils/auth";
-import type { User as UserType } from "@/types/api";
+import { useAuth } from "@/contexts/auth-context";
 
 const menuItems = [
   {
@@ -77,45 +76,9 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, setUser } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        // First try to get from localStorage (for fake API)
-        const cachedUser = getUserInfo();
-        if (cachedUser) {
-          setUser(cachedUser);
-          setLoading(false);
-          return;
-        }
-
-        // If no cached user, try to fetch from API
-        if (hasToken()) {
-          try {
-            const userData = await userService.getCurrentUser();
-            setUser(userData);
-          } catch (error) {
-            // If API fails, clear tokens
-            clearTokens();
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   const handleLogout = () => {
     clearTokens();
@@ -126,13 +89,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     router.refresh();
   };
 
-  const displayName = user
-    ? getUserDisplayName(user.name, user.email)
-    : "";
+  const displayName = user ? getUserDisplayName(user.name, user.email) : "";
 
-  const userInitials = user
-    ? getUserInitials(user.name, user.email)
-    : "";
+  const userInitials = user ? getUserInitials(user.name, user.email) : "";
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -281,13 +240,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="flex items-center w-full cursor-pointer">
+                    <Link
+                      href="/profile"
+                      className="flex items-center w-full cursor-pointer"
+                    >
                       <User className="mr-2 h-4 w-4" />
                       Hồ sơ
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     Đăng xuất
                   </DropdownMenuItem>

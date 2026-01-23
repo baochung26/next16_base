@@ -78,7 +78,8 @@ export default function HomePage() {
                 <CardTitle>Authentication</CardTitle>
                 <CardDescription>
                   Hệ thống xác thực hoàn chỉnh với JWT token, hỗ trợ đăng nhập
-                  bằng email hoặc username. Sẵn sàng tích hợp với NestJS backend.
+                  bằng email hoặc username. Sẵn sàng tích hợp với NestJS
+                  backend.
                 </CardDescription>
               </CardHeader>
               <CardContent>

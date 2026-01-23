@@ -29,7 +29,10 @@ const providers: any[] = [
           return null;
         }
 
-        const isValid = await verifyPassword(credentials.password, user.password);
+        const isValid = await verifyPassword(
+          credentials.password,
+          user.password
+        );
         if (!isValid) {
           return null;
         }
@@ -37,20 +40,20 @@ const providers: any[] = [
         // Ensure all required fields are present
         const userData = {
           id: user.id,
-          email: user.email || '',
+          email: user.email || "",
           name: user.name || user.username || null,
           image: user.image || null,
           username: user.username || null,
         };
-        
+
         // Validate required fields
         if (!userData.id || !userData.email) {
           return null;
         }
-        
+
         return userData;
       } catch (error) {
-        console.error('Error in authorize:', error);
+        console.error("Error in authorize:", error);
         return null;
       }
     },
@@ -74,13 +77,13 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google") {
         // Check if user exists by provider ID
         let dbUser = getUserByProviderId("google", account.providerAccountId);
-        
+
         if (!dbUser) {
           // Check if user exists by email
           if (user.email) {
             dbUser = getUserByEmail(user.email);
           }
-          
+
           // Create new user if doesn't exist
           if (!dbUser) {
             dbUser = await createUser({
@@ -101,7 +104,7 @@ export const authOptions: NextAuthOptions = {
             });
           }
         }
-        
+
         user.id = dbUser.id;
       }
       return true;
@@ -114,7 +117,7 @@ export const authOptions: NextAuthOptions = {
         }
         return token;
       } catch (error) {
-        console.error('Error in jwt callback:', error);
+        console.error("Error in jwt callback:", error);
         return token;
       }
     },
@@ -123,8 +126,8 @@ export const authOptions: NextAuthOptions = {
         if (!session || !session.user) {
           return {
             user: {
-              id: '',
-              email: '',
+              id: "",
+              email: "",
               name: null,
               image: null,
               username: null,
@@ -136,19 +139,19 @@ export const authOptions: NextAuthOptions = {
         if (token?.id) {
           session.user.id = token.id as string;
         }
-        
+
         if ((token as any)?.username !== undefined) {
           session.user.username = (token as any).username || null;
         }
 
         return session;
       } catch (error) {
-        console.error('Error in session callback:', error);
+        console.error("Error in session callback:", error);
         // Return a minimal valid session
         return {
           user: {
-            id: token?.id as string || '',
-            email: session?.user?.email || '',
+            id: (token?.id as string) || "",
+            email: session?.user?.email || "",
             name: session?.user?.name || null,
             image: session?.user?.image || null,
             username: (token as any)?.username || null,

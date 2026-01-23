@@ -35,11 +35,13 @@ src/
 Component button với nhiều variants và sizes.
 
 **Import:**
+
 ```typescript
 import { Button } from "@/components/ui/button";
 ```
 
 **Variants:**
+
 - `default`: Button mặc định (primary)
 - `destructive`: Button màu đỏ (cho hành động xóa)
 - `outline`: Button với border
@@ -48,12 +50,14 @@ import { Button } from "@/components/ui/button";
 - `link`: Button giống link
 
 **Sizes:**
+
 - `default`: Kích thước mặc định
 - `sm`: Nhỏ
 - `lg`: Lớn
 - `icon`: Chỉ icon
 
 **Ví dụ:**
+
 ```tsx
 <Button>Click me</Button>
 <Button variant="destructive">Delete</Button>
@@ -68,6 +72,7 @@ import { Button } from "@/components/ui/button";
 Component card để hiển thị nội dung trong container.
 
 **Import:**
+
 ```typescript
 import {
   Card,
@@ -80,6 +85,7 @@ import {
 ```
 
 **Ví dụ:**
+
 ```tsx
 <Card>
   <CardHeader>
@@ -100,6 +106,7 @@ import {
 Component dialog/modal để hiển thị popup.
 
 **Import:**
+
 ```typescript
 import {
   Dialog,
@@ -113,6 +120,7 @@ import {
 ```
 
 **Ví dụ:**
+
 ```tsx
 const [open, setOpen] = useState(false);
 
@@ -123,9 +131,7 @@ const [open, setOpen] = useState(false);
   <DialogContent>
     <DialogHeader>
       <DialogTitle>Dialog Title</DialogTitle>
-      <DialogDescription>
-        Dialog description
-      </DialogDescription>
+      <DialogDescription>Dialog description</DialogDescription>
     </DialogHeader>
     <div>Content here</div>
     <DialogFooter>
@@ -135,7 +141,7 @@ const [open, setOpen] = useState(false);
       <Button onClick={handleSubmit}>Confirm</Button>
     </DialogFooter>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### 4. Form
@@ -143,6 +149,7 @@ const [open, setOpen] = useState(false);
 Component form với react-hook-form và zod validation.
 
 **Import:**
+
 ```typescript
 import {
   Form,
@@ -156,6 +163,7 @@ import {
 ```
 
 **Ví dụ:**
+
 ```tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -191,7 +199,7 @@ const form = useForm<z.infer<typeof formSchema>>({
     />
     <Button type="submit">Submit</Button>
   </form>
-</Form>
+</Form>;
 ```
 
 ### 5. Input
@@ -199,11 +207,13 @@ const form = useForm<z.infer<typeof formSchema>>({
 Component input field.
 
 **Import:**
+
 ```typescript
 import { Input } from "@/components/ui/input";
 ```
 
 **Ví dụ:**
+
 ```tsx
 <Input type="text" placeholder="Enter text" />
 <Input type="email" placeholder="email@example.com" />
@@ -215,11 +225,13 @@ import { Input } from "@/components/ui/input";
 Component label cho form fields.
 
 **Import:**
+
 ```typescript
 import { Label } from "@/components/ui/label";
 ```
 
 **Ví dụ:**
+
 ```tsx
 <Label htmlFor="email">Email</Label>
 <Input id="email" />
@@ -230,6 +242,7 @@ import { Label } from "@/components/ui/label";
 Component dropdown menu.
 
 **Import:**
+
 ```typescript
 import {
   DropdownMenu,
@@ -242,6 +255,7 @@ import {
 ```
 
 **Ví dụ:**
+
 ```tsx
 <DropdownMenu>
   <DropdownMenuTrigger asChild>
@@ -261,11 +275,13 @@ import {
 Component toast notification.
 
 **Import:**
+
 ```typescript
 import { useToast } from "@/hooks/use-toast";
 ```
 
 **Ví dụ:**
+
 ```tsx
 const { toast } = useToast();
 
@@ -291,12 +307,14 @@ toast({
 ```
 
 **Variants:**
+
 - `default`: Toast mặc định
 - `success`: Toast thành công (màu xanh)
 - `destructive`: Toast lỗi (màu đỏ)
 
 **Setup:**
 Thêm `<Toaster />` vào root layout:
+
 ```tsx
 import { Toaster } from "@/components/ui/toaster";
 
@@ -317,6 +335,7 @@ export default function RootLayout({ children }) {
 Component pagination cho danh sách.
 
 **Import:**
+
 ```typescript
 import {
   Pagination,
@@ -330,6 +349,7 @@ import {
 ```
 
 **Ví dụ:**
+
 ```tsx
 const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 10;
@@ -339,11 +359,11 @@ const totalPages = Math.ceil(totalItems / itemsPerPage);
   <PaginationContent>
     <PaginationItem>
       <PaginationPrevious
-        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
         className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
       />
     </PaginationItem>
-    
+
     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
       <PaginationItem key={page}>
         <PaginationLink
@@ -354,15 +374,17 @@ const totalPages = Math.ceil(totalItems / itemsPerPage);
         </PaginationLink>
       </PaginationItem>
     ))}
-    
+
     <PaginationItem>
       <PaginationNext
-        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+        className={
+          currentPage === totalPages ? "pointer-events-none opacity-50" : ""
+        }
       />
     </PaginationItem>
   </PaginationContent>
-</Pagination>
+</Pagination>;
 ```
 
 ## Layout Components
@@ -372,11 +394,13 @@ const totalPages = Math.ceil(totalItems / itemsPerPage);
 Layout chính cho các trang public (home, about, etc.).
 
 **Import:**
+
 ```typescript
 import { MainLayout } from "@/components/layout/main-layout";
 ```
 
 **Ví dụ:**
+
 ```tsx
 export default function HomePage() {
   return (
@@ -388,6 +412,7 @@ export default function HomePage() {
 ```
 
 **Bao gồm:**
+
 - Header với navigation và auth buttons
 - Footer
 - Responsive container
@@ -397,11 +422,13 @@ export default function HomePage() {
 Layout cho các trang authentication (login, register, etc.).
 
 **Import:**
+
 ```typescript
 import { AuthLayout } from "@/components/layout/auth-layout";
 ```
 
 **Ví dụ:**
+
 ```tsx
 export default function LoginPage() {
   return (
@@ -413,6 +440,7 @@ export default function LoginPage() {
 ```
 
 **Đặc điểm:**
+
 - Không có Header/Footer
 - Link về trang chủ
 - Centered layout
@@ -422,11 +450,13 @@ export default function LoginPage() {
 Layout cho dashboard với sidebar navigation.
 
 **Import:**
+
 ```typescript
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 ```
 
 **Ví dụ:**
+
 ```tsx
 export default function DashboardPage() {
   return (
@@ -438,12 +468,14 @@ export default function DashboardPage() {
 ```
 
 **Tính năng:**
+
 - Sidebar với menu navigation
 - Top bar với title
 - Responsive với mobile menu
 - Nút "Về trang chủ" và "Đăng xuất"
 
 **Menu Items:**
+
 - Tổng quan (`/dashboard`)
 - Người dùng (`/dashboard/users`)
 - Sản phẩm (`/dashboard/products`)
@@ -457,6 +489,7 @@ export default function DashboardPage() {
 Component header chính của ứng dụng.
 
 **Tính năng:**
+
 - Logo và navigation links
 - Theme toggle
 - User dropdown menu (khi đã đăng nhập)
@@ -464,6 +497,7 @@ Component header chính của ứng dụng.
 - Responsive design
 
 **User Dropdown Menu:**
+
 - Profile link
 - Dashboard link (nếu là admin)
 - Logout button
@@ -473,6 +507,7 @@ Component header chính của ứng dụng.
 Component footer của ứng dụng.
 
 **Ví dụ:**
+
 ```tsx
 <Footer />
 ```
@@ -484,6 +519,7 @@ Component footer của ứng dụng.
 Project sử dụng Tailwind CSS v4 với các utilities classes.
 
 **Common Classes:**
+
 - `container`: Container với max-width responsive
 - `mx-auto`: Center horizontally
 - `px-4 sm:px-6 lg:px-8`: Responsive padding
@@ -496,26 +532,25 @@ Project sử dụng Tailwind CSS v4 với các utilities classes.
 Project hỗ trợ dark mode với `next-themes`.
 
 **Setup:**
+
 ```tsx
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
-<ThemeProvider
-  attribute="class"
-  defaultTheme="system"
-  enableSystem
->
+<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
   {children}
-</ThemeProvider>
+</ThemeProvider>;
 ```
 
 **Sử dụng:**
+
 ```tsx
 import { ThemeToggle } from "@/components/theme-toggle";
 
-<ThemeToggle />
+<ThemeToggle />;
 ```
 
 **CSS Variables:**
+
 ```css
 /* Light mode */
 --background: 0 0% 100%;
@@ -543,10 +578,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 - Mobile-first approach
 
 **Ví dụ:**
+
 ```tsx
-<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-  {/* Content */}
-</div>
+<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">{/* Content */}</div>
 ```
 
 ### 3. Accessibility
@@ -557,6 +591,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 - Sử dụng proper heading hierarchy
 
 **Ví dụ:**
+
 ```tsx
 <Button aria-label="Close dialog">
   <X className="h-4 w-4" />
@@ -570,6 +605,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 - Validate cả client và server side
 
 **Ví dụ:**
+
 ```tsx
 const schema = z.object({
   email: z.string().email("Email không hợp lệ"),
@@ -584,6 +620,7 @@ const schema = z.object({
 - Sử dụng skeleton loaders cho content
 
 **Ví dụ:**
+
 ```tsx
 <Button disabled={isLoading}>
   {isLoading ? (
@@ -604,6 +641,7 @@ const schema = z.object({
 - Có fallback UI cho error states
 
 **Ví dụ:**
+
 ```tsx
 try {
   await submitForm();
@@ -652,9 +690,7 @@ try {
       <tr key={item.id} className="border-b hover:bg-muted/50">
         <td className="p-4">{item.name}</td>
         <td className="p-4 text-right">
-          <DropdownMenu>
-            {/* Actions */}
-          </DropdownMenu>
+          <DropdownMenu>{/* Actions */}</DropdownMenu>
         </td>
       </tr>
     ))}
@@ -684,7 +720,7 @@ const [open, setOpen] = useState(false);
       </form>
     </Form>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ## Customization
@@ -696,6 +732,7 @@ npx shadcn@latest add [component-name]
 ```
 
 Ví dụ:
+
 ```bash
 npx shadcn@latest add select
 npx shadcn@latest add table
@@ -729,6 +766,7 @@ Tất cả components trong `src/components/ui/` có thể được chỉnh sử
 ## Examples
 
 Xem các ví dụ thực tế trong:
+
 - `src/app/page.tsx` - Home page với cards
 - `src/app/auth/login/page.tsx` - Form với validation
 - `src/app/dashboard/users/page.tsx` - Table với pagination và dialogs

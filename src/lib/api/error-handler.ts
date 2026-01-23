@@ -20,7 +20,9 @@ export function getErrorMessage(error: unknown): string {
 /**
  * Extract validation errors from API error
  */
-export function getValidationErrors(error: unknown): Record<string, string[]> | null {
+export function getValidationErrors(
+  error: unknown
+): Record<string, string[]> | null {
   if (error instanceof AxiosError) {
     const apiError = error.response?.data as ApiError;
     return apiError?.errors || null;

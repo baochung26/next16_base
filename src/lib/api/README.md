@@ -30,6 +30,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ### API Client
 
 API client được cấu hình với:
+
 - Base URL từ `NEXT_PUBLIC_API_URL`
 - Timeout: 30 giây
 - Auto-attach JWT token từ localStorage
@@ -135,11 +136,7 @@ Error format:
 Tokens được lưu trong localStorage:
 
 ```typescript
-import { 
-  getAccessToken, 
-  setAccessToken, 
-  clearTokens 
-} from "@/lib/api/token";
+import { getAccessToken, setAccessToken, clearTokens } from "@/lib/api/token";
 
 // Get token
 const token = getAccessToken();
@@ -154,10 +151,10 @@ clearTokens();
 ## Error Handling
 
 ```typescript
-import { 
-  getErrorMessage, 
+import {
+  getErrorMessage,
   getValidationErrors,
-  isNetworkError 
+  isNetworkError,
 } from "@/lib/api/error-handler";
 
 try {
@@ -165,10 +162,10 @@ try {
 } catch (error) {
   // Get error message
   const message = getErrorMessage(error);
-  
+
   // Get validation errors
   const validationErrors = getValidationErrors(error);
-  
+
   // Check if network error
   if (isNetworkError(error)) {
     console.log("Network error");

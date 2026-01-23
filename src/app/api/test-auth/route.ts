@@ -5,7 +5,7 @@ export async function GET() {
   try {
     // Test if authOptions can be loaded
     const providers = authOptions.providers;
-    
+
     return NextResponse.json({
       success: true,
       providersCount: providers.length,
@@ -13,10 +13,13 @@ export async function GET() {
       hasSecret: !!authOptions.secret,
     });
   } catch (error: any) {
-    return NextResponse.json({
-      success: false,
-      error: error.message,
-      stack: error.stack,
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+        stack: error.stack,
+      },
+      { status: 500 }
+    );
   }
 }

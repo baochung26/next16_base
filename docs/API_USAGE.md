@@ -41,6 +41,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ### API Client
 
 API client tự động:
+
 - Thêm `Authorization: Bearer {token}` header vào mọi request
 - Xử lý lỗi và redirect khi 401
 - Hỗ trợ cả fake API và real API
@@ -51,11 +52,11 @@ API client tự động:
 
 ```typescript
 // Import từ barrel export (recommended)
-import { authService, userService } from '@/services';
+import { authService, userService } from "@/services";
 
 // Hoặc import trực tiếp
-import { authService } from '@/services/auth.service';
-import { userService } from '@/services/user.service';
+import { authService } from "@/services/auth.service";
+import { userService } from "@/services/user.service";
 ```
 
 ### Authentication Service
@@ -63,23 +64,23 @@ import { userService } from '@/services/user.service';
 #### Login
 
 ```typescript
-import { authService } from '@/services';
+import { authService } from "@/services";
 
 try {
   const response = await authService.login({
-    identifier: 'user@example.com', // hoặc username
-    password: 'password123'
+    identifier: "user@example.com", // hoặc username
+    password: "password123",
   });
-  
+
   // Token đã được tự động lưu vào localStorage
   // response.user chứa thông tin user
   // response.accessToken và refreshToken đã được lưu
-  
-  console.log('User:', response.user);
-  console.log('Logged in successfully');
+
+  console.log("User:", response.user);
+  console.log("Logged in successfully");
 } catch (error) {
   // Error đã được format sẵn
-  console.error('Login failed:', error.message);
+  console.error("Login failed:", error.message);
 }
 ```
 
@@ -88,15 +89,15 @@ try {
 ```typescript
 try {
   const response = await authService.register({
-    email: 'user@example.com',
-    password: 'password123',
-    username: 'username', // optional
-    name: 'User Name'     // optional
+    email: "user@example.com",
+    password: "password123",
+    username: "username", // optional
+    name: "User Name", // optional
   });
-  
-  console.log('User registered:', response.user);
+
+  console.log("User registered:", response.user);
 } catch (error) {
-  console.error('Registration failed:', error.message);
+  console.error("Registration failed:", error.message);
 }
 ```
 
@@ -105,12 +106,12 @@ try {
 ```typescript
 try {
   const response = await authService.forgotPassword({
-    email: 'user@example.com'
+    email: "user@example.com",
   });
-  
-  console.log('Reset link sent:', response.message);
+
+  console.log("Reset link sent:", response.message);
 } catch (error) {
-  console.error('Failed:', error.message);
+  console.error("Failed:", error.message);
 }
 ```
 
@@ -119,13 +120,13 @@ try {
 ```typescript
 try {
   const response = await authService.resetPassword({
-    token: 'reset-token-from-email',
-    password: 'newPassword123'
+    token: "reset-token-from-email",
+    password: "newPassword123",
   });
-  
-  console.log('Password reset:', response.message);
+
+  console.log("Password reset:", response.message);
 } catch (error) {
-  console.error('Reset failed:', error.message);
+  console.error("Reset failed:", error.message);
 }
 ```
 
@@ -135,28 +136,28 @@ try {
 try {
   await authService.logout();
   // Clear tokens manually
-  import { clearTokens } from '@/lib/api/token';
+  import { clearTokens } from "@/lib/api/token";
   clearTokens();
 } catch (error) {
-  console.error('Logout failed:', error.message);
+  console.error("Logout failed:", error.message);
 }
 ```
 
 #### Refresh Token
 
 ```typescript
-import { getRefreshToken } from '@/lib/api/token';
+import { getRefreshToken } from "@/lib/api/token";
 
 try {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
-    throw new Error('No refresh token available');
+    throw new Error("No refresh token available");
   }
-  
+
   const response = await authService.refreshToken(refreshToken);
   // New access token đã được tự động lưu
 } catch (error) {
-  console.error('Token refresh failed:', error.message);
+  console.error("Token refresh failed:", error.message);
 }
 ```
 
@@ -165,14 +166,14 @@ try {
 #### Get Current User
 
 ```typescript
-import { userService } from '@/services';
+import { userService } from "@/services";
 
 try {
   const user = await userService.getCurrentUser();
-  console.log('Current user:', user);
+  console.log("Current user:", user);
 } catch (error) {
   // Nếu 401, sẽ tự động redirect về /auth/login
-  console.error('Failed to get user:', error.message);
+  console.error("Failed to get user:", error.message);
 }
 ```
 
@@ -180,10 +181,10 @@ try {
 
 ```typescript
 try {
-  const user = await userService.getUserById('user-id-here');
-  console.log('User:', user);
+  const user = await userService.getUserById("user-id-here");
+  console.log("User:", user);
 } catch (error) {
-  console.error('Failed:', error.message);
+  console.error("Failed:", error.message);
 }
 ```
 
@@ -192,13 +193,13 @@ try {
 ```typescript
 try {
   const updatedUser = await userService.updateProfile({
-    name: 'New Name',
-    username: 'newusername'
+    name: "New Name",
+    username: "newusername",
   });
-  
-  console.log('Profile updated:', updatedUser);
+
+  console.log("Profile updated:", updatedUser);
 } catch (error) {
-  console.error('Update failed:', error.message);
+  console.error("Update failed:", error.message);
 }
 ```
 
@@ -207,28 +208,30 @@ try {
 ```typescript
 try {
   const response = await userService.changePassword({
-    currentPassword: 'oldPassword123',
-    newPassword: 'newPassword123'
+    currentPassword: "oldPassword123",
+    newPassword: "newPassword123",
   });
-  
-  console.log('Password changed:', response.message);
+
+  console.log("Password changed:", response.message);
 } catch (error) {
-  console.error('Change password failed:', error.message);
+  console.error("Change password failed:", error.message);
 }
 ```
 
 #### Upload Avatar
 
 ```typescript
-const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+const fileInput = document.querySelector(
+  'input[type="file"]'
+) as HTMLInputElement;
 const file = fileInput?.files?.[0];
 
 if (file) {
   try {
     const response = await userService.uploadAvatar(file);
-    console.log('Avatar uploaded:', response.imageUrl);
+    console.log("Avatar uploaded:", response.imageUrl);
   } catch (error) {
-    console.error('Upload failed:', error.message);
+    console.error("Upload failed:", error.message);
   }
 }
 ```
@@ -238,11 +241,11 @@ if (file) {
 ### Sử dụng Error Handler Utilities
 
 ```typescript
-import { 
-  getErrorMessage, 
-  getValidationErrors, 
+import {
+  getErrorMessage,
+  getValidationErrors,
   isNetworkError,
-  isErrorStatus 
+  isErrorStatus
 } from '@/lib/api/error-handler';
 
 try {
@@ -251,18 +254,18 @@ try {
   // Get error message
   const message = getErrorMessage(error);
   console.error(message);
-  
+
   // Get validation errors (if any)
   const validationErrors = getValidationErrors(error);
   if (validationErrors) {
     console.error('Validation errors:', validationErrors);
   }
-  
+
   // Check error type
   if (isNetworkError(error)) {
     console.error('Network error - check connection');
   }
-  
+
   if (isErrorStatus(error, 401)) {
     console.error('Unauthorized');
   }
@@ -275,9 +278,9 @@ Tất cả errors được format thành `ApiError`:
 
 ```typescript
 interface ApiError {
-  message: string;                    // Error message
-  statusCode: number;                 // HTTP status code
-  errors?: Record<string, string[]>;  // Validation errors (if any)
+  message: string; // Error message
+  statusCode: number; // HTTP status code
+  errors?: Record<string, string[]>; // Validation errors (if any)
 }
 ```
 
@@ -286,18 +289,18 @@ interface ApiError {
 ### Lưu và đọc Token
 
 ```typescript
-import { 
-  getAccessToken, 
+import {
+  getAccessToken,
   setAccessToken,
   getRefreshToken,
   setRefreshToken,
   clearTokens,
-  hasToken 
-} from '@/lib/api/token';
+  hasToken,
+} from "@/lib/api/token";
 
 // Check if user has token
 if (hasToken()) {
-  console.log('User is authenticated');
+  console.log("User is authenticated");
 }
 
 // Get tokens
@@ -305,8 +308,8 @@ const accessToken = getAccessToken();
 const refreshToken = getRefreshToken();
 
 // Set tokens (thường được tự động khi login)
-setAccessToken('token-here');
-setRefreshToken('refresh-token-here');
+setAccessToken("token-here");
+setRefreshToken("refresh-token-here");
 
 // Clear tokens (khi logout)
 clearTokens();
@@ -315,10 +318,10 @@ clearTokens();
 ### Lưu User Info (Fake API only)
 
 ```typescript
-import { setUserInfo, getUserInfo } from '@/lib/api/token';
+import { setUserInfo, getUserInfo } from "@/lib/api/token";
 
 // Lưu user info (chỉ cho fake API)
-setUserInfo({ id: '123', email: 'user@example.com' });
+setUserInfo({ id: "123", email: "user@example.com" });
 
 // Đọc user info
 const userInfo = getUserInfo();
@@ -329,12 +332,16 @@ const userInfo = getUserInfo();
 ### Get User trong Server Components
 
 ```typescript
-import { getServerUser, requireServerAuth, requireServerAdmin } from '@/lib/api/server-auth';
+import {
+  getServerUser,
+  requireServerAuth,
+  requireServerAdmin,
+} from "@/lib/api/server-auth";
 
 // Get user (returns null if not authenticated)
 const user = await getServerUser();
 if (!user) {
-  redirect('/auth/login');
+  redirect("/auth/login");
 }
 
 // Require authentication (throws if not authenticated)
@@ -358,7 +365,7 @@ export default async function DashboardPage() {
   } catch (error) {
     redirect('/auth/login');
   }
-  
+
   return <div>Dashboard for {user.name}</div>;
 }
 ```
@@ -369,26 +376,26 @@ export default async function DashboardPage() {
 
 ```typescript
 // services/product.service.ts
-import { BaseService } from '@/lib/api/base.service';
-import apiClient, { ApiResponse } from '@/lib/api/client';
-import type { Product } from '@/types/api';
+import { BaseService } from "@/lib/api/base.service";
+import apiClient, { ApiResponse } from "@/lib/api/client";
+import type { Product } from "@/types/api";
 
 class ProductService extends BaseService {
   async getProducts(): Promise<Product[]> {
     return this.safeCall(() =>
-      apiClient.get<ApiResponse<Product[]>>('/products')
+      apiClient.get<ApiResponse<Product[]>>("/products")
     );
   }
-  
+
   async getProductById(id: string): Promise<Product> {
     return this.safeCall(() =>
       apiClient.get<ApiResponse<Product>>(`/products/${id}`)
     );
   }
-  
+
   async createProduct(data: Partial<Product>): Promise<Product> {
     return this.safeCall(() =>
-      apiClient.post<ApiResponse<Product>>('/products', data)
+      apiClient.post<ApiResponse<Product>>("/products", data)
     );
   }
 }
@@ -400,9 +407,9 @@ export const productService = new ProductService();
 
 ```typescript
 // services/index.ts
-export { authService } from './auth.service';
-export { userService } from './user.service';
-export { productService } from './product.service';
+export { authService } from "./auth.service";
+export { userService } from "./user.service";
+export { productService } from "./product.service";
 ```
 
 ## Best Practices
@@ -420,7 +427,7 @@ try {
 ### 2. Sử dụng error handler utilities
 
 ```typescript
-import { getErrorMessage } from '@/lib/api/error-handler';
+import { getErrorMessage } from "@/lib/api/error-handler";
 
 try {
   // ...
@@ -434,10 +441,10 @@ try {
 
 ```typescript
 // ✅ Good
-import { authService, userService } from '@/services';
+import { authService, userService } from "@/services";
 
 // ❌ Avoid
-import { authService } from '@/services/auth.service';
+import { authService } from "@/services/auth.service";
 ```
 
 ### 4. Type safety
@@ -445,13 +452,13 @@ import { authService } from '@/services/auth.service';
 ```typescript
 // ✅ Good - TypeScript sẽ check types
 const response = await authService.login({
-  identifier: 'user@example.com',
-  password: 'password123'
+  identifier: "user@example.com",
+  password: "password123",
 });
 
 // ❌ Bad - Missing required fields
 const response = await authService.login({
-  identifier: 'user@example.com'
+  identifier: "user@example.com",
   // Missing password
 });
 ```
@@ -465,7 +472,7 @@ const [error, setError] = useState<string>('');
 const handleLogin = async () => {
   setLoading(true);
   setError('');
-  
+
   try {
     await authService.login({ ... });
   } catch (err) {

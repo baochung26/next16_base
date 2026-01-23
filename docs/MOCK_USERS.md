@@ -5,18 +5,21 @@ Dữ liệu mock users đã được seed vào database để test đăng nhập
 ## Test Accounts
 
 ### 1. Admin User
+
 - **Email**: `admin@example.com`
 - **Username**: `admin`
 - **Password**: `password123`
 - **Name**: Admin User
 
 ### 2. John Doe
+
 - **Email**: `john@example.com`
 - **Username**: `johndoe`
 - **Password**: `admin123`
 - **Name**: John Doe
 
 ### 3. Test User
+
 - **Email**: `user@example.com`
 - **Password**: `user123`
 - **Name**: Test User
@@ -25,10 +28,13 @@ Dữ liệu mock users đã được seed vào database để test đăng nhập
 ## Cách sử dụng
 
 ### Đăng nhập bằng Email
+
 Bạn có thể đăng nhập bằng email của bất kỳ user nào ở trên.
 
 ### Đăng nhập bằng Username
+
 Bạn có thể đăng nhập bằng username cho user có username:
+
 - `admin` (password: `password123`)
 - `johndoe` (password: `admin123`)
 

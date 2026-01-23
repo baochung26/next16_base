@@ -138,8 +138,8 @@ export default function AboutPage() {
               Sứ mệnh của chúng tôi
             </h2>
             <p className="text-lg text-muted-foreground">
-              Chúng tôi cam kết mang đến những giải pháp công nghệ hiện đại,
-              dễ sử dụng và đáng tin cậy cho mọi người.
+              Chúng tôi cam kết mang đến những giải pháp công nghệ hiện đại, dễ
+              sử dụng và đáng tin cậy cho mọi người.
             </p>
           </div>
 
@@ -172,8 +172,8 @@ export default function AboutPage() {
               Đội ngũ của chúng tôi
             </h2>
             <p className="text-lg text-muted-foreground">
-              Một đội ngũ tài năng và đam mê, làm việc cùng nhau để tạo ra
-              những sản phẩm tuyệt vời.
+              Một đội ngũ tài năng và đam mê, làm việc cùng nhau để tạo ra những
+              sản phẩm tuyệt vời.
             </p>
           </div>
 
@@ -217,7 +217,8 @@ export default function AboutPage() {
             {[
               {
                 name: "Next.js 16",
-                description: "React framework với App Router và Server Components",
+                description:
+                  "React framework với App Router và Server Components",
                 icon: Code,
               },
               {
@@ -227,7 +228,8 @@ export default function AboutPage() {
               },
               {
                 name: "Tailwind CSS",
-                description: "Utility-first CSS framework cho styling nhanh chóng",
+                description:
+                  "Utility-first CSS framework cho styling nhanh chóng",
                 icon: Zap,
               },
               {

@@ -3,9 +3,11 @@
  * Handles storing and retrieving JWT tokens
  */
 
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
-const USER_INFO_KEY = "userInfo"; // Store user info temporarily
+import { APP_CONFIG } from "@/lib/constants";
+
+const ACCESS_TOKEN_KEY = APP_CONFIG.SESSION.TOKEN_KEY;
+const REFRESH_TOKEN_KEY = APP_CONFIG.SESSION.REFRESH_TOKEN_KEY;
+const USER_INFO_KEY = APP_CONFIG.SESSION.USER_INFO_KEY;
 
 /**
  * Get access token from localStorage

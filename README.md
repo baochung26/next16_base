@@ -1,36 +1,218 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js App với Authentication
 
-## Getting Started
+Template Next.js 16 hoàn chỉnh với authentication, UI components đẹp mắt, và cấu trúc code chuẩn. Sẵn sàng để phát triển ứng dụng của bạn.
 
-First, run the development server:
+## 🚀 Tính năng
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- ✅ **Next.js 16** với App Router và React 19
+- ✅ **TypeScript** cho type safety
+- ✅ **Authentication** với JWT token-based auth
+- ✅ **UI Components** từ shadcn/ui
+- ✅ **Dark Mode** với next-themes
+- ✅ **API Integration** với Axios, sẵn sàng tích hợp NestJS
+- ✅ **Form Validation** với React Hook Form + Zod
+- ✅ **Dashboard** đầy đủ tính năng với sidebar navigation
+- ✅ **Responsive Design** cho mọi thiết bị
+
+## 📋 Yêu cầu
+
+- Node.js 20.x trở lên
+- npm, yarn, hoặc pnpm
+
+## 🛠️ Cài đặt
+
+1. **Clone repository**
+
+   ```bash
+   git clone <repository-url>
+   cd next_20260123
+   ```
+
+2. **Cài đặt dependencies**
+
+   ```bash
+   npm install
+   # hoặc
+   yarn install
+   # hoặc
+   pnpm install
+   ```
+
+3. **Cấu hình environment variables**
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Chỉnh sửa `.env` với các giá trị phù hợp:
+
+   ```env
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your-secret-key-here
+   NEXT_PUBLIC_USE_FAKE_API=true
+   NEXT_PUBLIC_API_URL=http://localhost:3001/api
+   ```
+
+4. **Seed mock data (optional)**
+
+   ```bash
+   npm run seed
+   ```
+
+5. **Chạy development server**
+
+   ```bash
+   npm run dev
+   ```
+
+6. **Mở trình duyệt**
+   ```
+   http://localhost:3000
+   ```
+
+## 📁 Cấu trúc Project
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes
+│   ├── auth/              # Authentication pages
+│   ├── dashboard/        # Dashboard pages
+│   └── ...
+├── components/            # React components
+│   ├── layout/           # Layout components
+│   ├── ui/               # UI components (shadcn/ui)
+│   └── ...
+├── lib/                   # Utilities và helpers
+│   ├── api/              # API client và utilities
+│   ├── db/               # Database utilities (mock)
+│   └── ...
+├── services/              # API service classes
+├── hooks/                 # Custom React hooks
+├── types/                 # TypeScript type definitions
+└── middleware.ts         # Next.js middleware
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🎯 Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `npm run dev` - Chạy development server
+- `npm run build` - Build production
+- `npm run start` - Chạy production server
+- `npm run lint` - Chạy ESLint
+- `npm run lint:fix` - Fix ESLint errors
+- `npm run type-check` - Kiểm tra TypeScript types
+- `npm run format` - Format code với Prettier
+- `npm run format:check` - Kiểm tra code formatting
+- `npm run seed` - Seed mock user data
+- `npm run clean` - Xóa build artifacts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Authentication
 
-## Learn More
+Project sử dụng JWT token-based authentication:
 
-To learn more about Next.js, take a look at the following resources:
+- **Fake API**: Local Next.js API routes (development)
+- **Real API**: NestJS backend (production)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Xem [API_USAGE.md](./docs/API_USAGE.md) để biết thêm chi tiết.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Mock Users
 
-## Deploy on Vercel
+- **Admin**: `admin@example.com` / `password123`
+- **User**: `johndoe@example.com` / `password123`
+- **Test**: `test@example.com` / `password123`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Xem [MOCK_USERS.md](./docs/MOCK_USERS.md) để biết thêm.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📚 Documentation
+
+### Core Documentation
+
+- [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Hướng dẫn phát triển dự án
+- [Architecture Overview](./docs/ARCHITECTURE.md) - Tổng quan kiến trúc và design patterns
+- [Coding Standards](./docs/CODING_STANDARDS.md) - Chuẩn code và best practices
+- [Feature Development Guide](./docs/FEATURE_DEVELOPMENT.md) - Hướng dẫn phát triển feature mới
+
+### API & Integration
+
+- [API Usage Guide](./docs/API_USAGE.md) - Hướng dẫn sử dụng API
+- [MOCK_USERS.md](./docs/MOCK_USERS.md) - Mock user data
+
+### UI & Layout
+
+- [UI & Layout Guide](./docs/UI_LAYOUT.md) - Hướng dẫn UI components và layouts
+
+### Workflow & Deployment
+
+- [Git Workflow](./docs/GIT_WORKFLOW.md) - Quy trình làm việc với Git
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Hướng dẫn deploy project
+
+### Troubleshooting
+
+- [Troubleshooting Guide](./docs/TROUBLESHOOTING.md) - Xử lý lỗi thường gặp
+
+### State Management
+
+- [State Management Guide](./docs/STATE_MANAGEMENT.md) - Quản lý state trong project
+
+## 🎨 UI Components
+
+Project sử dụng [shadcn/ui](https://ui.shadcn.com/) cho UI components:
+
+- Button, Card, Dialog, Form, Input, Label
+- Dropdown Menu, Toast, Pagination
+- Tất cả components có thể tùy chỉnh
+
+Xem [UI_LAYOUT.md](./docs/UI_LAYOUT.md) để biết thêm.
+
+## 🔧 Cấu hình
+
+### Environment Variables
+
+Xem `.env.example` để biết các biến môi trường cần thiết.
+
+### TypeScript
+
+Path aliases đã được cấu hình:
+
+- `@/*` → `src/*`
+
+### Tailwind CSS
+
+Project sử dụng Tailwind CSS v4 với CSS variables cho theming.
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+
+1. Push code lên GitHub
+2. Import project vào Vercel
+3. Cấu hình environment variables
+4. Deploy
+
+### Other Platforms
+
+Project có thể deploy trên bất kỳ platform nào hỗ trợ Next.js:
+
+- Netlify
+- AWS Amplify
+- Railway
+- Render
+
+## 🤝 Contributing
+
+1. Fork repository
+2. Tạo feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Tạo Pull Request
+
+## 📝 License
+
+MIT License
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Radix UI](https://www.radix-ui.com/)
+- [Tailwind CSS](https://tailwindcss.com/)

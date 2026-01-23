@@ -9,7 +9,8 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">NextApp</h3>
             <p className="text-sm text-muted-foreground">
-              Ứng dụng Next.js hiện đại với authentication và UI components đẹp mắt.
+              Ứng dụng Next.js hiện đại với authentication và UI components đẹp
+              mắt.
             </p>
           </div>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,49 +14,12 @@ import {
 import { User, LogOut, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { isAdmin, getUserDisplayName, getUserInitials } from "@/lib/utils/auth";
-import { hasToken, getUserInfo, clearTokens } from "@/lib/api/token";
-import { userService } from "@/services";
-import type { User as UserType } from "@/types/api";
+import { clearTokens } from "@/lib/api/token";
+import { useAuth } from "@/contexts/auth-context";
 
 export function Header() {
   const router = useRouter();
-  const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        // First try to get from localStorage (for fake API)
-        const cachedUser = getUserInfo();
-        if (cachedUser) {
-          setUser(cachedUser);
-          setLoading(false);
-          return;
-        }
-
-        // If no cached user, try to fetch from API
-        if (hasToken()) {
-          try {
-            const userData = await userService.getCurrentUser();
-            setUser(userData);
-          } catch (error) {
-            // If API fails, clear tokens
-            clearTokens();
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  const { user, loading, setUser } = useAuth();
 
   const handleSignOut = async () => {
     clearTokens();
@@ -73,13 +35,9 @@ export function Header() {
     ? isAdmin(user.email, user.username || undefined)
     : false;
 
-  const displayName = user
-    ? getUserDisplayName(user.name, user.email)
-    : "";
+  const displayName = user ? getUserDisplayName(user.name, user.email) : "";
 
-  const userInitials = user
-    ? getUserInitials(user.name, user.email)
-    : "";
+  const userInitials = user ? getUserInitials(user.name, user.email) : "";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -166,21 +124,30 @@ export function Header() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center w-full cursor-pointer">
+                  <Link
+                    href="/profile"
+                    className="flex items-center w-full cursor-pointer"
+                  >
                     <User className="mr-2 h-4 w-4" />
                     Hồ sơ
                   </Link>
                 </DropdownMenuItem>
                 {userIsAdmin && (
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center w-full cursor-pointer">
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center w-full cursor-pointer"
+                    >
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="cursor-pointer"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Đăng xuất
                 </DropdownMenuItem>

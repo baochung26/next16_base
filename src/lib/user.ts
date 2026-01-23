@@ -20,7 +20,9 @@ export async function getCurrentUser(): Promise<User | null> {
  * Get current user session (server-side)
  * @deprecated Use getServerUser from @/lib/api/server-auth instead
  */
-export async function getCurrentSession(): Promise<{ user: SessionUser } | null> {
+export async function getCurrentSession(): Promise<{
+  user: SessionUser;
+} | null> {
   try {
     const user = await getServerUser();
     if (!user) {

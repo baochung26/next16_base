@@ -28,22 +28,27 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { authService } from "@/services";
 import { getErrorMessage } from "@/lib/api/error-handler";
 
-const registerSchema = z.object({
-  username: z
-    .string()
-    .min(3, "Username phải có ít nhất 3 ký tự")
-    .max(30, "Username không được quá 30 ký tự")
-    .regex(/^[a-zA-Z0-9_]+$/, "Username chỉ được chứa chữ cái, số và dấu gạch dưới")
-    .optional()
-    .or(z.literal("")),
-  email: z.string().email("Email không hợp lệ"),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
-  confirmPassword: z.string().min(6, "Vui lòng xác nhận mật khẩu"),
-  name: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Mật khẩu xác nhận không khớp",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Username phải có ít nhất 3 ký tự")
+      .max(30, "Username không được quá 30 ký tự")
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        "Username chỉ được chứa chữ cái, số và dấu gạch dưới"
+      )
+      .optional()
+      .or(z.literal("")),
+    email: z.string().email("Email không hợp lệ"),
+    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    confirmPassword: z.string().min(6, "Vui lòng xác nhận mật khẩu"),
+    name: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  });
 
 export default function RegisterPage() {
   const router = useRouter();

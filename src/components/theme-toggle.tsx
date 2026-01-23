@@ -48,7 +48,9 @@ export function ThemeToggle() {
           <span>Tối</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          <span className="mr-2 h-4 w-4 flex items-center justify-center">💻</span>
+          <span className="mr-2 h-4 w-4 flex items-center justify-center">
+            💻
+          </span>
           <span>Theo hệ thống</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

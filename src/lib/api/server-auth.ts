@@ -13,7 +13,7 @@ export async function getServerUser(): Promise<User | null> {
     // In real backend, this will be in Authorization header
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
-    
+
     if (!token) {
       return null;
     }

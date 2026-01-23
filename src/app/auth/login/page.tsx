@@ -65,10 +65,11 @@ export default function LoginPage() {
         identifier: values.identifier,
         password: values.password,
       });
-      
+
       // Store token and user info
       if (response.accessToken) {
-        const { setAccessToken, setRefreshToken, setUserInfo } = await import("@/lib/api/token");
+        const { setAccessToken, setRefreshToken, setUserInfo } =
+          await import("@/lib/api/token");
         setAccessToken(response.accessToken);
         if (response.refreshToken) {
           setRefreshToken(response.refreshToken);
@@ -77,14 +78,14 @@ export default function LoginPage() {
         if (response.user) {
           setUserInfo(response.user);
         }
-        
+
         // Set cookie for server-side access
         document.cookie = `accessToken=${response.accessToken}; path=/; max-age=86400; SameSite=Lax`;
         if (response.refreshToken) {
           document.cookie = `refreshToken=${response.refreshToken}; path=/; max-age=604800; SameSite=Lax`;
         }
       }
-      
+
       // Redirect to home
       router.push("/");
       router.refresh();
@@ -243,7 +244,10 @@ export default function LoginPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Chưa có tài khoản?{" "}
-            <Link href="/auth/register" className="text-primary hover:underline">
+            <Link
+              href="/auth/register"
+              className="text-primary hover:underline"
+            >
               Đăng ký ngay
             </Link>
           </p>

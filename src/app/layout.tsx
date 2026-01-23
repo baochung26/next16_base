@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
+import { AuthProvider } from "@/contexts/auth-context";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ErrorBoundaryProvider } from "@/components/providers/error-boundary-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { APP_CONFIG } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Next.js App with Auth",
-  description: "Next.js application with authentication",
+  title: APP_CONFIG.NAME,
+  description: APP_CONFIG.DESCRIPTION,
 };
 
 export default function RootLayout({
@@ -37,8 +40,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthSessionProvider>
-            {children}
-            <Toaster />
+            <AuthProvider>
+              <ErrorBoundaryProvider>
+                {children}
+                <Toaster />
+              </ErrorBoundaryProvider>
+            </AuthProvider>
           </AuthSessionProvider>
         </ThemeProvider>
       </body>

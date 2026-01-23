@@ -4,11 +4,11 @@ import type { User } from "@/types/api";
 
 /**
  * User Service - Handles all user related API calls
- * 
+ *
  * @example
  * ```ts
  * import { userService } from '@/services';
- * 
+ *
  * // Get current user
  * const user = await userService.getCurrentUser();
  * ```
@@ -16,19 +16,17 @@ import type { User } from "@/types/api";
 class UserService extends BaseService {
   /**
    * Get current user profile
-   * 
+   *
    * @returns Current user data
    * @throws {ApiError} If user is not authenticated or request fails
    */
   async getCurrentUser(): Promise<User> {
-    return this.safeCall(() =>
-      apiClient.get<ApiResponse<User>>("/users/me")
-    );
+    return this.safeCall(() => apiClient.get<ApiResponse<User>>("/users/me"));
   }
 
   /**
    * Get user by ID
-   * 
+   *
    * @param id - User ID
    * @returns User data
    * @throws {ApiError} If user not found or request fails
@@ -41,7 +39,7 @@ class UserService extends BaseService {
 
   /**
    * Update user profile
-   * 
+   *
    * @param data - Partial user data to update
    * @returns Updated user data
    * @throws {ApiError} If update fails
@@ -54,7 +52,7 @@ class UserService extends BaseService {
 
   /**
    * Change password
-   * 
+   *
    * @param data - Current and new password
    * @returns Success message
    * @throws {ApiError} If password change fails
@@ -73,7 +71,7 @@ class UserService extends BaseService {
 
   /**
    * Upload avatar image
-   * 
+   *
    * @param file - Image file to upload
    * @returns Image URL
    * @throws {ApiError} If upload fails

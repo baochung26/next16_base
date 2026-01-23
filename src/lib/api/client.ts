@@ -1,4 +1,8 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
 
 // API Response types
 export interface ApiResponse<T = any> {
@@ -17,8 +21,11 @@ export interface ApiError {
 // Determine base URL - use local API if NEXT_PUBLIC_USE_FAKE_API is true
 const getBaseURL = () => {
   // If using fake API (local Next.js API routes)
-  if (process.env.NEXT_PUBLIC_USE_FAKE_API === "true" || !process.env.NEXT_PUBLIC_API_URL) {
-    return typeof window !== "undefined" 
+  if (
+    process.env.NEXT_PUBLIC_USE_FAKE_API === "true" ||
+    !process.env.NEXT_PUBLIC_API_URL
+  ) {
+    return typeof window !== "undefined"
       ? "/api" // Client-side: use relative path
       : "http://localhost:3000/api"; // Server-side: use full URL
   }
@@ -63,7 +70,7 @@ apiClient.interceptors.response.use(
     // Handle error responses
     if (error.response) {
       const { status, data } = error.response;
-      
+
       // Handle specific status codes
       switch (status) {
         case 401:

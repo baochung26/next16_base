@@ -28,13 +28,15 @@ import { Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { authService } from "@/services";
 import { getErrorMessage } from "@/lib/api/error-handler";
 
-const resetPasswordSchema = z.object({
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
-  confirmPassword: z.string().min(6, "Vui lòng xác nhận mật khẩu"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Mật khẩu xác nhận không khớp",
-  path: ["confirmPassword"],
-});
+const resetPasswordSchema = z
+  .object({
+    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    confirmPassword: z.string().min(6, "Vui lòng xác nhận mật khẩu"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Mật khẩu xác nhận không khớp",
+    path: ["confirmPassword"],
+  });
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -119,7 +121,10 @@ export default function ResetPasswordPage() {
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Link href="/auth/login" className="text-sm text-primary hover:underline">
+            <Link
+              href="/auth/login"
+              className="text-sm text-primary hover:underline"
+            >
               Đăng nhập ngay
             </Link>
           </CardFooter>
@@ -148,13 +153,18 @@ export default function ResetPasswordPage() {
                 <span>Về trang chủ</span>
               </Link>
             </div>
-            <CardTitle className="text-2xl font-bold">Token không hợp lệ</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Token không hợp lệ
+            </CardTitle>
             <CardDescription>
               Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex justify-center">
-            <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
+            <Link
+              href="/auth/forgot-password"
+              className="text-sm text-primary hover:underline"
+            >
               Yêu cầu link mới
             </Link>
           </CardFooter>
@@ -183,9 +193,7 @@ export default function ResetPasswordPage() {
             </Link>
           </div>
           <CardTitle className="text-2xl font-bold">Đặt lại mật khẩu</CardTitle>
-          <CardDescription>
-            Nhập mật khẩu mới của bạn
-          </CardDescription>
+          <CardDescription>Nhập mật khẩu mới của bạn</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -242,7 +250,10 @@ export default function ResetPasswordPage() {
           </Form>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Link href="/auth/login" className="text-sm text-primary hover:underline">
+          <Link
+            href="/auth/login"
+            className="text-sm text-primary hover:underline"
+          >
             Quay lại đăng nhập
           </Link>
         </CardFooter>

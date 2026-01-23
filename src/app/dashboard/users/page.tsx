@@ -61,7 +61,11 @@ import {
 const userSchema = z.object({
   name: z.string().min(1, "Vui lòng nhập tên"),
   email: z.string().email("Email không hợp lệ"),
-  username: z.string().min(3, "Username phải có ít nhất 3 ký tự").optional().or(z.literal("")),
+  username: z
+    .string()
+    .min(3, "Username phải có ít nhất 3 ký tự")
+    .optional()
+    .or(z.literal("")),
   role: z.enum(["User", "Admin"]),
   status: z.enum(["Active", "Inactive"]),
 });
@@ -232,12 +236,16 @@ export default function UsersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{allUsers.length}</div>
-              <p className="text-xs text-muted-foreground">+20 từ tháng trước</p>
+              <p className="text-xs text-muted-foreground">
+                +20 từ tháng trước
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Đang hoạt động</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Đang hoạt động
+              </CardTitle>
               <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -249,7 +257,9 @@ export default function UsersPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Người dùng mới</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Người dùng mới
+              </CardTitle>
               <Plus className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -298,7 +308,9 @@ export default function UsersPage() {
                       Người dùng
                     </th>
                     <th className="text-left p-4 text-sm font-medium">Email</th>
-                    <th className="text-left p-4 text-sm font-medium">Vai trò</th>
+                    <th className="text-left p-4 text-sm font-medium">
+                      Vai trò
+                    </th>
                     <th className="text-left p-4 text-sm font-medium">
                       Trạng thái
                     </th>
@@ -391,49 +403,67 @@ export default function UsersPage() {
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious
-                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(1, prev - 1))
+                      }
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
                     />
                   </PaginationItem>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    // Show first page, last page, current page, and pages around current
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            onClick={() => setCurrentPage(page)}
-                            isActive={currentPage === page}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    } else if (page === currentPage - 2 || page === currentPage + 2) {
-                      return (
-                        <PaginationItem key={page}>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      );
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => {
+                      // Show first page, last page, current page, and pages around current
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if (
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                      ) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
                     }
-                    return null;
-                  })}
-                  
+                  )}
+
                   <PaginationItem>
                     <PaginationNext
-                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                      }
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
                     />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
               <div className="mt-4 text-center text-sm text-muted-foreground">
-                Hiển thị {startIndex + 1}-{Math.min(endIndex, users.length)} trong tổng số {users.length} người dùng
+                Hiển thị {startIndex + 1}-{Math.min(endIndex, users.length)}{" "}
+                trong tổng số {users.length} người dùng
               </div>
             </div>
           )}
@@ -545,8 +575,8 @@ export default function UsersPage() {
                   >
                     Hủy
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isSubmitting}
                     className="w-full sm:w-auto"
                   >

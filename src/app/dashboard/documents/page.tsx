@@ -60,7 +60,9 @@ export default async function DocumentsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Quản lý tài liệu</h2>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Quản lý tài liệu
+            </h2>
             <p className="text-muted-foreground">
               Quản lý và chia sẻ tài liệu trong hệ thống
             </p>

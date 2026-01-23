@@ -70,9 +70,7 @@ export default async function SettingsPage() {
                 <Bell className="h-5 w-5" />
                 <CardTitle>Thông báo</CardTitle>
               </div>
-              <CardDescription>
-                Cấu hình các thông báo hệ thống
-              </CardDescription>
+              <CardDescription>Cấu hình các thông báo hệ thống</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -122,7 +120,9 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="session-timeout">Thời gian hết phiên (phút)</Label>
+                <Label htmlFor="session-timeout">
+                  Thời gian hết phiên (phút)
+                </Label>
                 <Input id="session-timeout" type="number" defaultValue="30" />
               </div>
               <div className="flex items-center justify-between">
@@ -157,9 +157,7 @@ export default async function SettingsPage() {
                 <Globe className="h-5 w-5" />
                 <CardTitle>Ngôn ngữ và khu vực</CardTitle>
               </div>
-              <CardDescription>
-                Cấu hình ngôn ngữ và định dạng
-              </CardDescription>
+              <CardDescription>Cấu hình ngôn ngữ và định dạng</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
