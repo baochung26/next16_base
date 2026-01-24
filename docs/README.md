@@ -20,6 +20,11 @@ Tài liệu đầy đủ cho project development.
   - Request flow và state management
   - Ví dụ thực tế với code
 
+- **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Học React/Next qua `auth-context.tsx`
+  - Từng dòng: "use client", import, Context, Provider, useAuth
+  - useState, useEffect, refetch, luồng hoạt động
+  - Cách dùng trong component, khái niệm cần nắm
+
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Hướng dẫn bắt đầu phát triển
   - Setup project
   - Development workflow
@@ -90,6 +95,8 @@ Tài liệu đầy đủ cho project development.
   - Authentication issues
 
 ### 📖 Reference
+
+- **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Phân tích `auth-context.tsx`
 
 - **[State Management Guide](./STATE_MANAGEMENT.md)** - Quản lý state
   - Current approach
