@@ -13,7 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { isAdmin, getUserDisplayName, getUserInitials } from "@/lib/utils/auth";
+import {
+  isAdminUser,
+  getUserDisplayName,
+  getUserInitials,
+} from "@/lib/utils/auth";
 import { clearTokens } from "@/lib/api/token";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -31,13 +35,20 @@ export function Header() {
     router.refresh();
   };
 
-  const userIsAdmin = user
-    ? isAdmin(user.email, user.username || undefined)
-    : false;
+  const userIsAdmin = isAdminUser(user);
 
-  const displayName = user ? getUserDisplayName(user.name, user.email) : "";
+  const displayName = user
+    ? getUserDisplayName(
+        user.name,
+        user.email,
+        user.firstName,
+        user.lastName
+      )
+    : "";
 
-  const userInitials = user ? getUserInitials(user.name, user.email) : "";
+  const userInitials = user
+    ? getUserInitials(user.name, user.email, user.firstName, user.lastName)
+    : "";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

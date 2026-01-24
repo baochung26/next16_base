@@ -29,7 +29,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { clearTokens } from "@/lib/api/token";
-import { getUserDisplayName, getUserInitials } from "@/lib/utils/auth";
+import {
+  getUserDisplayName,
+  getUserInitials,
+  isAdminUser,
+} from "@/lib/utils/auth";
 import { useAuth } from "@/contexts/auth-context";
 
 const menuItems = [
@@ -80,6 +84,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Check if user is admin and redirect if not
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push("/auth/login");
+      } else if (!isAdminUser(user)) {
+        router.push("/");
+      }
+    }
+  }, [user, loading, router]);
+
   const handleLogout = () => {
     clearTokens();
     document.cookie = "accessToken=; path=/; max-age=0";
@@ -89,9 +104,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     router.refresh();
   };
 
-  const displayName = user ? getUserDisplayName(user.name, user.email) : "";
+  const displayName = user
+    ? getUserDisplayName(
+        user.name,
+        user.email,
+        user.firstName,
+        user.lastName
+      )
+    : "";
 
-  const userInitials = user ? getUserInitials(user.name, user.email) : "";
+  const userInitials = user
+    ? getUserInitials(user.name, user.email, user.firstName, user.lastName)
+    : "";
+
+  // Show loading or redirect if not admin
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdminUser(user)) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">

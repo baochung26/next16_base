@@ -28,14 +28,14 @@ import { Input } from "@/components/ui/input";
 import { Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Vui lòng nhập username hoặc email"),
+  email: z.string().email("Email không hợp lệ"),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 });
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refetch } = useAuth();
+  const { refetch, setUser } = useAuth();
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +51,7 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: "",
+      email: "",
       password: "",
     },
   });
@@ -61,35 +61,42 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Use fake API (will be replaced with real NestJS backend later)
+      // Call backend API
       const { authService } = await import("@/services");
       const response = await authService.login({
-        identifier: values.identifier,
+        email: values.email,
         password: values.password,
       });
 
       // Store token and user info
-      if (response.accessToken) {
-        const { setAccessToken, setRefreshToken, setUserInfo } =
-          await import("@/lib/api/token");
-        setAccessToken(response.accessToken);
-        if (response.refreshToken) {
-          setRefreshToken(response.refreshToken);
-        }
-        // Store user info temporarily (for fake API)
-        if (response.user) {
-          setUserInfo(response.user);
-        }
+      if (response.access_token) {
+        const { setAccessToken, setUserInfo } = await import("@/lib/api/token");
+        setAccessToken(response.access_token);
+        
+        // Store user info
+        const userInfo = {
+          id: response.id,
+          email: response.email,
+          firstName: response.firstName,
+          lastName: response.lastName,
+          role: response.role,
+          isActive: response.isActive,
+        };
+        setUserInfo(userInfo);
+
+        // Set user directly in context
+        setUser({
+          ...userInfo,
+          createdAt: response.createdAt,
+          updatedAt: response.updatedAt,
+        });
 
         // Set cookie for server-side access
-        document.cookie = `accessToken=${response.accessToken}; path=/; max-age=86400; SameSite=Lax`;
-        if (response.refreshToken) {
-          document.cookie = `refreshToken=${response.refreshToken}; path=/; max-age=604800; SameSite=Lax`;
-        }
+        document.cookie = `accessToken=${response.access_token}; path=/; max-age=86400; SameSite=Lax`;
       }
 
-      // Refetch user data to ensure AuthContext is updated
-      await refetch();
+      // User đã được set trực tiếp vào context ở trên, không cần refetch
+      // vì thông tin user đã có trong login response
 
       // Redirect to home
       router.push("/");
@@ -156,13 +163,14 @@ export default function LoginPage() {
 
               <FormField
                 control={form.control}
-                name="identifier"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username hoặc Email</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="username hoặc email@example.com"
+                        type="email"
+                        placeholder="email@example.com"
                         {...field}
                         disabled={isLoading}
                       />

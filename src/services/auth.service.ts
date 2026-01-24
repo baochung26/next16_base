@@ -27,20 +27,20 @@ import type {
  */
 class AuthService extends BaseService {
   /**
-   * Login with username/email and password
+   * Login with email and password
    *
-   * @param credentials - Login credentials (identifier can be email or username)
-   * @returns Login response with user data and tokens
+   * @param credentials - Login credentials (email and password)
+   * @returns Login response with user data and access token
    * @throws {ApiError} If login fails
    *
    * @example
    * ```ts
    * const response = await authService.login({
-   *   identifier: 'user@example.com',
+   *   email: 'user@example.com',
    *   password: 'password123'
    * });
-   * // response.user contains user data
-   * // response.accessToken and refreshToken are automatically stored
+   * // response contains user data (id, email, firstName, lastName, role, etc.)
+   * // response.access_token is automatically stored
    * ```
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -51,14 +51,10 @@ class AuthService extends BaseService {
       );
       const data = this.handleResponse(response);
 
-      // Store tokens if provided
-      if (data.accessToken) {
-        const { setAccessToken, setRefreshToken } =
-          await import("@/lib/api/token");
-        setAccessToken(data.accessToken);
-        if (data.refreshToken) {
-          setRefreshToken(data.refreshToken);
-        }
+      // Store access token if provided (backend uses access_token, not accessToken)
+      if (data.access_token) {
+        const { setAccessToken } = await import("@/lib/api/token");
+        setAccessToken(data.access_token);
       }
 
       return data;

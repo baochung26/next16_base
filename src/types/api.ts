@@ -1,19 +1,19 @@
 // Auth types
 export interface LoginRequest {
-  identifier: string; // username or email
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
-  user: {
     id: string;
     email: string;
-    username?: string;
-    name?: string;
-    image?: string;
-  };
-  accessToken?: string;
-  refreshToken?: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  access_token: string;
 }
 
 export interface RegisterRequest {
@@ -50,25 +50,31 @@ export interface ResetPasswordResponse {
   message: string;
 }
 
-// User types
+// User types - matches backend format
 export interface User {
   id: string;
   email: string;
-  username?: string;
-  name?: string;
-  image?: string;
-  emailVerified?: Date;
-  provider: "credentials" | "google";
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  // Optional fields
+  username?: string;
+  image?: string;
+  emailVerified?: Date;
+  provider?: "credentials" | "google";
 }
 
-// Common API response
+// Common API response - matches backend format
 export interface ApiResponse<T = any> {
-  data?: T;
-  message?: string;
-  error?: string;
-  statusCode?: number;
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: T;
+  timestamp?: string;
+  path?: string;
 }
 
 export interface ApiError {

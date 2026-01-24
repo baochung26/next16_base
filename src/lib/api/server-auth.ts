@@ -55,7 +55,11 @@ export async function requireServerAuth(): Promise<User> {
  */
 export async function requireServerAdmin(): Promise<User> {
   const user = await requireServerAuth();
-  const userIsAdmin = isAdmin(user.email, user.username || undefined);
+  const userIsAdmin = isAdmin(
+    user.email,
+    user.username || undefined,
+    (user as any).role || undefined
+  );
   if (!userIsAdmin) {
     throw new Error("Forbidden");
   }
