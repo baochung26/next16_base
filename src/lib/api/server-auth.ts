@@ -32,9 +32,9 @@ export async function getServerUser(): Promise<User | null> {
       }
     }
 
-    // For real JWT: Call backend API to get user info
+    // For real JWT: Call backend API /auth/profile to get user info
     try {
-      const response = await fetch(`${BACKEND_API_URL}/users/me`, {
+      const response = await fetch(`${BACKEND_API_URL}/auth/profile`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -44,21 +44,19 @@ export async function getServerUser(): Promise<User | null> {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          const apiUser = data.data as ApiUser;
-          // Map ApiUser to User type (for backward compatibility)
-          return {
-            id: apiUser.id,
-            email: apiUser.email,
-            firstName: apiUser.firstName,
-            lastName: apiUser.lastName,
-            role: apiUser.role,
-            isActive: apiUser.isActive,
-            createdAt: apiUser.createdAt,
-            updatedAt: apiUser.updatedAt,
-          } as any as User;
-        }
+        const apiUser = await response.json();
+        // Backend returns user data directly (not wrapped)
+        // Map ApiUser to User type (for backward compatibility)
+        return {
+          id: apiUser.id,
+          email: apiUser.email,
+          firstName: apiUser.firstName,
+          lastName: apiUser.lastName,
+          role: apiUser.role,
+          isActive: apiUser.isActive,
+          createdAt: apiUser.createdAt,
+          updatedAt: apiUser.updatedAt,
+        } as any as User;
       }
     } catch (apiError) {
       // If backend API fails, return null (will be handled by caller)

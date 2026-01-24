@@ -16,12 +16,13 @@ import type { User } from "@/types/api";
 class UserService extends BaseService {
   /**
    * Get current user profile
+   * Uses /auth/profile endpoint from backend
    *
    * @returns Current user data
    * @throws {ApiError} If user is not authenticated or request fails
    */
   async getCurrentUser(): Promise<User> {
-    return this.safeCall(() => apiClient.get<ApiResponse<User>>("/users/me"));
+    return this.safeCall(() => apiClient.get<ApiResponse<User>>("/auth/profile"));
   }
 
   /**

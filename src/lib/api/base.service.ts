@@ -8,12 +8,31 @@ import { AxiosError } from "axios";
 export class BaseService {
   /**
    * Handle API response and extract data
+   * Handles both wrapped format { success, data, ... } and direct format
    */
-  protected handleResponse<T>(response: { data: ApiResponse<T> }): T {
-    if (!response.data.data) {
-      throw new Error(response.data.message || "No data returned");
+  protected handleResponse<T>(response: { data: ApiResponse<T> | T }): T {
+    const responseData = response.data;
+
+    // If response is already the data type (direct format from /auth/profile)
+    if (responseData && typeof responseData === "object" && "id" in responseData && !("success" in responseData)) {
+      return responseData as T;
     }
-    return response.data.data;
+
+    // If response is wrapped in ApiResponse format
+    const apiResponse = responseData as ApiResponse<T>;
+    if (apiResponse && apiResponse.data) {
+      return apiResponse.data;
+    }
+
+    // Check if response indicates failure
+    if (apiResponse && apiResponse.success === false) {
+      throw {
+        message: apiResponse.message || "Request failed",
+        statusCode: apiResponse.statusCode || 500,
+      } as ApiError;
+    }
+
+    throw new Error(apiResponse?.message || "No data returned");
   }
 
   /**

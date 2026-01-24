@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById } from "@/lib/db";
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,6 +9,7 @@ export async function GET(request: NextRequest) {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
         {
+          success: false,
           message: "Unauthorized",
           statusCode: 401,
         },
@@ -18,65 +20,37 @@ export async function GET(request: NextRequest) {
     // Extract token
     const token = authHeader.replace("Bearer ", "");
 
-    // For fake API: Extract user ID from token format "fake-jwt-token-{userId}-{random}"
-    // In real backend, JWT will be decoded to get user ID
-    let userId: string | null = null;
-
-    if (token.startsWith("fake-jwt-token-")) {
-      // Extract user ID from fake token
-      // Format: fake-jwt-token-{userId}|{random}
-      const tokenWithoutPrefix = token.replace("fake-jwt-token-", "");
-      const parts = tokenWithoutPrefix.split("|");
-      if (parts.length >= 1 && parts[0]) {
-        userId = parts[0];
-      }
-    } else {
-      // Real JWT token - will be handled by backend
-      // For now, return error
-      return NextResponse.json(
-        {
-          message:
-            "Token validation not implemented for fake API. Please use fake token.",
-          statusCode: 401,
-        },
-        { status: 401 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          message: "Unauthorized",
-          statusCode: 401,
-        },
-        { status: 401 }
-      );
-    }
-
-    // Get user from database
-    const user = getUserById(userId);
-    if (!user) {
-      return NextResponse.json(
-        {
-          message: "User not found",
-          statusCode: 404,
-        },
-        { status: 404 }
-      );
-    }
-
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-
-    return NextResponse.json({
-      data: userWithoutPassword,
-      message: "Success",
-      statusCode: 200,
+    // Call backend API /auth/profile
+    const response = await fetch(`${BACKEND_API_URL}/auth/profile`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
     });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: responseData.message || "Unauthorized",
+          statusCode: response.status,
+        },
+        { status: response.status }
+      );
+    }
+
+    // Backend /auth/profile returns user data directly (not wrapped)
+    // Return as-is to match backend format
+    return NextResponse.json(responseData, { status: response.status });
   } catch (error) {
     console.error("Get current user error:", error);
     return NextResponse.json(
       {
+        success: false,
         message: "Có lỗi xảy ra",
         statusCode: 500,
       },

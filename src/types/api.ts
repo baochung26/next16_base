@@ -17,20 +17,21 @@ export interface LoginResponse {
 }
 
 export interface RegisterRequest {
-  username?: string;
   email: string;
   password: string;
-  name?: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface RegisterResponse {
-  user: {
-    id: string;
-    email: string;
-    username?: string;
-    name?: string;
-  };
-  message: string;
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ForgotPasswordRequest {
