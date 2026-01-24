@@ -1,16 +1,18 @@
 import { cookies } from "next/headers";
 import { getUserById, type User } from "@/lib/db";
 import { isAdmin } from "@/lib/utils/auth";
+import type { User as ApiUser } from "@/types/api";
+
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 /**
  * Get current user from token (server-side)
- * This works with fake API tokens
- * When using real backend, this will validate JWT token
+ * This works with fake API tokens and real JWT tokens
+ * For real JWT, it calls backend API to get user info
  */
 export async function getServerUser(): Promise<User | null> {
   try {
     // Get token from cookies (set by client after login)
-    // In real backend, this will be in Authorization header
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value;
 
@@ -30,8 +32,39 @@ export async function getServerUser(): Promise<User | null> {
       }
     }
 
-    // For real JWT: Decode token to get user ID
-    // TODO: Implement JWT decoding when using real backend
+    // For real JWT: Call backend API to get user info
+    try {
+      const response = await fetch(`${BACKEND_API_URL}/users/me`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          const apiUser = data.data as ApiUser;
+          // Map ApiUser to User type (for backward compatibility)
+          return {
+            id: apiUser.id,
+            email: apiUser.email,
+            firstName: apiUser.firstName,
+            lastName: apiUser.lastName,
+            role: apiUser.role,
+            isActive: apiUser.isActive,
+            createdAt: apiUser.createdAt,
+            updatedAt: apiUser.updatedAt,
+          } as any as User;
+        }
+      }
+    } catch (apiError) {
+      // If backend API fails, return null (will be handled by caller)
+      console.error("Error fetching user from backend API:", apiError);
+    }
+
     return null;
   } catch (error) {
     console.error("Error getting server user:", error);
@@ -52,14 +85,20 @@ export async function requireServerAuth(): Promise<User> {
 
 /**
  * Check if user is admin (server-side)
+ * If backend API /users/me is not available, this will fail
+ * In that case, client-side check in DashboardLayout will handle it
  */
 export async function requireServerAdmin(): Promise<User> {
   const user = await requireServerAuth();
+  
+  // Check if user has role property (from API)
+  const userRole = (user as any).role;
   const userIsAdmin = isAdmin(
     user.email,
     user.username || undefined,
-    (user as any).role || undefined
+    userRole || undefined
   );
+  
   if (!userIsAdmin) {
     throw new Error("Forbidden");
   }

@@ -35,7 +35,7 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refetch, setUser } = useAuth();
+  const { setUser } = useAuth();
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,14 +81,24 @@ export default function LoginPage() {
           lastName: response.lastName,
           role: response.role,
           isActive: response.isActive,
+          createdAt: response.createdAt,
+          updatedAt: response.updatedAt,
         };
+        
+        // Debug: log user info to verify role is saved
+        if (process.env.NODE_ENV === "development") {
+          console.log("Login successful, saving user info:", {
+            userInfo,
+            role: response.role,
+            isAdmin: response.role === "admin",
+          });
+        }
+        
         setUserInfo(userInfo);
 
         // Set user directly in context
         setUser({
           ...userInfo,
-          createdAt: response.createdAt,
-          updatedAt: response.updatedAt,
         });
 
         // Set cookie for server-side access

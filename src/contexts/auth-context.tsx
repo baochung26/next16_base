@@ -65,11 +65,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: cachedUser.email,
           firstName: cachedUser.firstName || "",
           lastName: cachedUser.lastName || "",
-          role: cachedUser.role || "user",
+          role: cachedUser.role || "user", // Ensure role is preserved
           isActive: cachedUser.isActive !== undefined ? cachedUser.isActive : true,
           createdAt: cachedUser.createdAt || new Date().toISOString(),
           updatedAt: cachedUser.updatedAt || new Date().toISOString(),
         };
+        
+        // Debug: log cached user info
+        if (process.env.NODE_ENV === "development") {
+          console.log("Loading user from cache:", {
+            cachedUser,
+            mappedUser: userData,
+            role: userData.role,
+          });
+        }
+        
         setUser(userData);
         setLoading(false);
         

@@ -33,6 +33,17 @@ export function isAdmin(
  */
 export function isAdminUser(user: User | null | undefined): boolean {
   if (!user) return false;
+  
+  // Debug logging in development
+  if (process.env.NODE_ENV === "development") {
+    console.log("isAdminUser check:", {
+      email: user.email,
+      username: user.username,
+      role: user.role,
+      result: isAdmin(user.email, user.username, user.role),
+    });
+  }
+  
   return isAdmin(user.email, user.username, user.role);
 }
 

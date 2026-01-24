@@ -89,8 +89,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (!loading) {
       if (!user) {
         router.push("/auth/login");
-      } else if (!isAdminUser(user)) {
-        router.push("/");
+      } else {
+        const userIsAdmin = isAdminUser(user);
+        // Debug: log user info to check role
+        if (process.env.NODE_ENV === "development") {
+          console.log("Dashboard access check:", {
+            user: {
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+            isAdmin: userIsAdmin,
+          });
+        }
+        if (!userIsAdmin) {
+          router.push("/");
+        }
       }
     }
   }, [user, loading, router]);

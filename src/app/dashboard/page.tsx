@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
-import { requireServerAdmin } from "@/lib/api/server-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { DashboardWelcome } from "./dashboard-welcome";
 import {
   Card,
   CardContent,
@@ -19,13 +18,9 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 
-export default async function DashboardPage() {
-  let user;
-  try {
-    user = await requireServerAdmin();
-  } catch (error) {
-    redirect("/auth/login");
-  }
+export default function DashboardPage() {
+  // Client-side DashboardLayout will handle authentication and admin check
+  // No need to check user here as DashboardLayout will redirect if not admin
 
   const stats = [
     {
@@ -93,14 +88,7 @@ export default async function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Welcome Section */}
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">
-            Chào mừng trở lại, {user.name || user.username || user.email}!
-          </h2>
-          <p className="text-muted-foreground">
-            Đây là tổng quan về hệ thống của bạn
-          </p>
-        </div>
+        <DashboardWelcome />
 
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

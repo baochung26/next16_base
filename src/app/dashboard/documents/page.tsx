@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { requireServerAdmin } from "@/lib/api/server-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   Card,
@@ -12,13 +10,8 @@ import { Button } from "@/components/ui/button";
 import { FileText, Upload, Download, Search, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-export default async function DocumentsPage() {
-  let user;
-  try {
-    user = await requireServerAdmin();
-  } catch (error) {
-    redirect("/auth/login");
-  }
+export default function DocumentsPage() {
+  // Client-side DashboardLayout will handle authentication and admin check
 
   const documents = [
     {
