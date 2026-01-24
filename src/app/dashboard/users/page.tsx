@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { userService } from "@/services";
+import { getErrorMessage } from "@/lib/api/error-handler";
+import type { User } from "@/types/api";
 import {
   Card,
   CardContent,
@@ -59,46 +62,22 @@ import {
 } from "@/components/ui/pagination";
 
 const userSchema = z.object({
-  name: z.string().min(1, "Vui lòng nhập tên"),
+  firstName: z.string().min(1, "Vui lòng nhập tên"),
+  lastName: z.string().min(1, "Vui lòng nhập họ"),
   email: z.string().email("Email không hợp lệ"),
-  username: z
-    .string()
-    .min(3, "Username phải có ít nhất 3 ký tự")
-    .optional()
-    .or(z.literal("")),
-  role: z.enum(["User", "Admin"]),
-  status: z.enum(["Active", "Inactive"]),
+  role: z.enum(["user", "admin"]),
+  isActive: z.boolean(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  username: string;
-  role: "User" | "Admin";
-  status: "Active" | "Inactive";
-  joinedAt: string;
-}
 
 export default function UsersPage() {
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Mock users data - 25 users for demo
-  const allUsers: UserData[] = Array.from({ length: 25 }, (_, i) => ({
-    id: String(i + 1),
-    name: `Người dùng ${i + 1}`,
-    email: `user${i + 1}@example.com`,
-    username: `user${i + 1}`,
-    role: i % 5 === 0 ? "Admin" : "User",
-    status: i % 7 === 0 ? "Inactive" : "Active",
-    joinedAt: new Date(2024, 0, 15 + i).toISOString().split("T")[0],
-  }));
-
-  const [users, setUsers] = useState<UserData[]>(allUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
   // Calculate pagination
   const totalPages = Math.ceil(users.length / itemsPerPage);
@@ -108,17 +87,41 @@ export default function UsersPage() {
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const usersData = await userService.getAllUsers();
+        setUsers(usersData);
+      } catch (err) {
+        const errorMessage = getErrorMessage(err);
+        setError(errorMessage);
+        toast({
+          title: "Lỗi",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [toast]);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
-      username: "",
-      role: "User",
-      status: "Active",
+      role: "user",
+      isActive: true,
     },
   });
 
@@ -144,7 +147,8 @@ export default function UsersPage() {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
+      // TODO: Call update user API when available
+      // For now, just update local state
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       setUsers(
@@ -160,14 +164,18 @@ export default function UsersPage() {
 
       toast({
         title: "Cập nhật thành công",
-        description: `Đã cập nhật thông tin người dùng ${data.name}`,
-        variant: "success",
+        description: `Đã cập nhật thông tin người dùng ${data.firstName} ${data.lastName}`,
       });
 
       setEditDialogOpen(false);
       setSelectedUser(null);
     } catch (error) {
       console.error("Error updating user:", error);
+      toast({
+        title: "Lỗi",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -178,10 +186,11 @@ export default function UsersPage() {
 
     setIsSubmitting(true);
     try {
-      // Simulate API call
+      // TODO: Call delete user API when available
+      // For now, just update local state
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const deletedUserName = selectedUser.name;
+      const deletedUserName = `${selectedUser.firstName} ${selectedUser.lastName}`;
       const updatedUsers = users.filter((user) => user.id !== selectedUser.id);
       setUsers(updatedUsers);
 
@@ -194,13 +203,17 @@ export default function UsersPage() {
       toast({
         title: "Xóa thành công",
         description: `Đã xóa người dùng ${deletedUserName}`,
-        variant: "success",
       });
 
       setDeleteDialogOpen(false);
       setSelectedUser(null);
     } catch (error) {
       console.error("Error deleting user:", error);
+      toast({
+        title: "Lỗi",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -235,9 +248,9 @@ export default function UsersPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{allUsers.length}</div>
+              <div className="text-2xl font-bold">{users.length}</div>
               <p className="text-xs text-muted-foreground">
-                +20 từ tháng trước
+                Tổng số người dùng
               </p>
             </CardContent>
           </Card>
@@ -250,21 +263,27 @@ export default function UsersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {allUsers.filter((u) => u.status === "Active").length}
+                {users.filter((u) => u.isActive).length}
               </div>
-              <p className="text-xs text-muted-foreground">88% tổng số</p>
+              <p className="text-xs text-muted-foreground">
+                {users.length > 0
+                  ? Math.round((users.filter((u) => u.isActive).length / users.length) * 100)
+                  : 0}% tổng số
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Người dùng mới
+                Không hoạt động
               </CardTitle>
-              <Plus className="h-4 w-4 text-muted-foreground" />
+              <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">45</div>
-              <p className="text-xs text-muted-foreground">Tháng này</p>
+              <div className="text-2xl font-bold">
+                {users.filter((u) => !u.isActive).length}
+              </div>
+              <p className="text-xs text-muted-foreground">Người dùng</p>
             </CardContent>
           </Card>
           <Card>
@@ -274,7 +293,7 @@ export default function UsersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {allUsers.filter((u) => u.role === "Admin").length}
+                {users.filter((u) => u.role === "admin").length}
               </div>
               <p className="text-xs text-muted-foreground">Quản trị viên</p>
             </CardContent>
@@ -300,102 +319,133 @@ export default function UsersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-4 text-sm font-medium">
-                      Người dùng
-                    </th>
-                    <th className="text-left p-4 text-sm font-medium">Email</th>
-                    <th className="text-left p-4 text-sm font-medium">
-                      Vai trò
-                    </th>
-                    <th className="text-left p-4 text-sm font-medium">
-                      Trạng thái
-                    </th>
-                    <th className="text-left p-4 text-sm font-medium">
-                      Ngày tham gia
-                    </th>
-                    <th className="text-right p-4 text-sm font-medium">
-                      Thao tác
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentUsers.map((user) => (
-                    <tr key={user.id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{user.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              @{user.username}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{user.email}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            user.role === "Admin"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            user.status === "Active"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                              : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-                          }`}
-                        >
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm text-muted-foreground">
-                        {user.joinedAt}
-                      </td>
-                      <td className="p-4 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(user)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(user)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Xóa
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <p className="text-destructive mb-2">{error}</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setError("");
+                      // Retry fetch
+                      userService.getAllUsers()
+                        .then(setUsers)
+                        .catch((err) => setError(getErrorMessage(err)))
+                        .finally(() => setLoading(false));
+                    }}
+                  >
+                    Thử lại
+                  </Button>
+                </div>
+              </div>
+            ) : users.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <p className="text-muted-foreground">Không có người dùng nào</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 text-sm font-medium">
+                        Người dùng
+                      </th>
+                      <th className="text-left p-4 text-sm font-medium">Email</th>
+                      <th className="text-left p-4 text-sm font-medium">
+                        Vai trò
+                      </th>
+                      <th className="text-left p-4 text-sm font-medium">
+                        Trạng thái
+                      </th>
+                      <th className="text-left p-4 text-sm font-medium">
+                        Ngày tạo
+                      </th>
+                      <th className="text-right p-4 text-sm font-medium">
+                        Thao tác
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {currentUsers.map((user) => (
+                      <tr key={user.id} className="border-b hover:bg-muted/50">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <User className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {user.firstName} {user.lastName}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {user.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{user.email}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
+                              user.role === "admin"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              user.isActive
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                                : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
+                            }`}
+                          >
+                            {user.isActive ? "Hoạt động" : "Không hoạt động"}
+                          </span>
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground">
+                          {new Date(user.createdAt).toLocaleDateString("vi-VN")}
+                        </td>
+                        <td className="p-4 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(user)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Chỉnh sửa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(user)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Xóa
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
           {totalPages > 1 && (
             <div className="border-t px-6 py-4">
@@ -483,19 +533,34 @@ export default function UsersPage() {
                 onSubmit={form.handleSubmit(onEditSubmit)}
                 className="space-y-4"
               >
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tên</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nhập tên" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tên</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Văn" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Họ</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nguyễn" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="email"
@@ -513,19 +578,6 @@ export default function UsersPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="username" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -538,8 +590,8 @@ export default function UsersPage() {
                             {...field}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            <option value="User">User</option>
-                            <option value="Admin">Admin</option>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
                           </select>
                         </FormControl>
                         <FormMessage />
@@ -548,17 +600,18 @@ export default function UsersPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="status"
+                    name="isActive"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Trạng thái</FormLabel>
                         <FormControl>
                           <select
-                            {...field}
+                            value={field.value ? "true" : "false"}
+                            onChange={(e) => field.onChange(e.target.value === "true")}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Không hoạt động</option>
                           </select>
                         </FormControl>
                         <FormMessage />
@@ -602,8 +655,12 @@ export default function UsersPage() {
               <DialogTitle>Xác nhận xóa</DialogTitle>
               <DialogDescription>
                 Bạn có chắc chắn muốn xóa người dùng{" "}
-                <strong>{selectedUser?.name}</strong>? Hành động này không thể
-                hoàn tác.
+                <strong>
+                  {selectedUser
+                    ? `${selectedUser.firstName} ${selectedUser.lastName}`
+                    : ""}
+                </strong>
+                ? Hành động này không thể hoàn tác.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>

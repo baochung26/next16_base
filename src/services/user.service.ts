@@ -93,6 +93,18 @@ class UserService extends BaseService {
       )
     );
   }
+
+  /**
+   * Get all users (admin only)
+   *
+   * @returns Array of all users
+   * @throws {ApiError} If user is not admin or request fails
+   */
+  async getAllUsers(): Promise<User[]> {
+    return this.safeCall(() =>
+      apiClient.get<ApiResponse<User[]>>("/admin/users")
+    );
+  }
 }
 
 // Export singleton instance
