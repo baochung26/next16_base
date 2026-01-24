@@ -6,6 +6,20 @@ Tài liệu đầy đủ cho project development.
 
 ### 🚀 Getting Started
 
+- **[Learning Guide](./LEARNING_GUIDE.md)** - Hướng dẫn học React & Next.js
+  - React rendering model
+  - Server vs Client Components
+  - Routing & Layout
+  - Data flow & State management
+  - Hooks & Lifecycle
+  - Performance optimization
+
+- **[Walkthrough](./WALKTHROUGH.md)** - Luồng hoạt động thực tế trong project
+  - User login flow từng bước
+  - File nào xử lý, data lưu ở đâu
+  - Request flow và state management
+  - Ví dụ thực tế với code
+
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Hướng dẫn bắt đầu phát triển
   - Setup project
   - Development workflow

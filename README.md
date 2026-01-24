@@ -125,6 +125,21 @@ Xem [MOCK_USERS.md](./docs/MOCK_USERS.md) để biết thêm.
 
 ## 📚 Documentation
 
+### Learning Resources
+
+- **[Learning Guide](./docs/LEARNING_GUIDE.md)** - Hướng dẫn học React & Next.js qua project
+  - React rendering model (Server vs Client Components)
+  - Routing & Layout trong Next.js App Router
+  - Data flow và State management
+  - Hooks & Lifecycle
+  - Performance optimization
+
+- **[Walkthrough](./docs/WALKTHROUGH.md)** - Luồng hoạt động thực tế
+  - User login flow từng bước chi tiết
+  - File nào xử lý, data lưu ở đâu
+  - Request flow và state management
+  - Ví dụ thực tế với code từ project
+
 ### Core Documentation
 
 - [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Hướng dẫn phát triển dự án
