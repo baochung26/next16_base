@@ -139,6 +139,36 @@ class UserService extends BaseService {
       throw error; // This will never be reached but satisfies TypeScript
     }
   }
+
+  /**
+   * Activate user (admin only)
+   *
+   * @param id - User ID (UUID)
+   * @returns Updated user data with isActive: true
+   * @throws {ApiError} If user is not admin or request fails
+   */
+  async activateUser(id: string): Promise<{ id: string; isActive: boolean }> {
+    return this.safeCall(() =>
+      apiClient.patch<ApiResponse<{ id: string; isActive: boolean }>>(
+        `/admin/users/${id}/activate`
+      )
+    );
+  }
+
+  /**
+   * Deactivate user (admin only)
+   *
+   * @param id - User ID (UUID)
+   * @returns Updated user data with isActive: false
+   * @throws {ApiError} If user is not admin or request fails
+   */
+  async deactivateUser(id: string): Promise<{ id: string; isActive: boolean }> {
+    return this.safeCall(() =>
+      apiClient.patch<ApiResponse<{ id: string; isActive: boolean }>>(
+        `/admin/users/${id}/deactivate`
+      )
+    );
+  }
 }
 
 // Export singleton instance

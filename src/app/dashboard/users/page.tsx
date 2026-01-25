@@ -49,6 +49,8 @@ import {
   Edit,
   Trash2,
   Loader2,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -125,21 +127,71 @@ export default function UsersPage() {
     },
   });
 
-  const handleEdit = (user: UserData) => {
+  const handleEdit = (user: User) => {
     setSelectedUser(user);
     form.reset({
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
-      username: user.username,
-      role: user.role,
-      status: user.status,
+      role: user.role as "user" | "admin",
+      isActive: user.isActive,
     });
     setEditDialogOpen(true);
   };
 
-  const handleDelete = (user: UserData) => {
+  const handleDelete = (user: User) => {
     setSelectedUser(user);
     setDeleteDialogOpen(true);
+  };
+
+  const handleActivate = async (user: User) => {
+    try {
+      await userService.activateUser(user.id);
+      
+      // Update local state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id ? { ...u, isActive: true } : u
+        )
+      );
+
+      toast({
+        title: "Kích hoạt thành công",
+        description: `Đã kích hoạt người dùng ${user.firstName} ${user.lastName}`,
+      });
+    } catch (error) {
+      console.error("Error activating user:", error);
+      toast({
+        title: "Lỗi",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeactivate = async (user: User) => {
+    try {
+      await userService.deactivateUser(user.id);
+      
+      // Update local state
+      setUsers(
+        users.map((u) =>
+          u.id === user.id ? { ...u, isActive: false } : u
+        )
+      );
+
+      toast({
+        title: "Vô hiệu hóa thành công",
+        description: `Đã vô hiệu hóa người dùng ${user.firstName} ${user.lastName}`,
+      });
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      toast({
+        title: "Lỗi",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+    }
   };
 
   const onEditSubmit = async (data: UserFormData) => {
@@ -431,6 +483,21 @@ export default function UsersPage() {
                                 <Edit className="mr-2 h-4 w-4" />
                                 Chỉnh sửa
                               </DropdownMenuItem>
+                              {user.isActive ? (
+                                <DropdownMenuItem
+                                  onClick={() => handleDeactivate(user)}
+                                >
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Vô hiệu hóa
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  onClick={() => handleActivate(user)}
+                                >
+                                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                                  Kích hoạt
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem
                                 onClick={() => handleDelete(user)}
                                 className="text-destructive focus:text-destructive"
