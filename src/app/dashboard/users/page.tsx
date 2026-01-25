@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { userService } from "@/services";
 import { getErrorMessage } from "@/lib/api/error-handler";
@@ -80,12 +80,36 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  
+  // Search and filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"user" | "admin" | "all">("all");
+  const [isActiveFilter, setIsActiveFilter] = useState<"all" | "true" | "false">("all");
+  const [sortBy, setSortBy] = useState<"createdAt" | "updatedAt" | "email" | "firstName" | "lastName" | "role" | "isActive">("createdAt");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
+  
+  // Pagination meta from API
+  const [paginationMeta, setPaginationMeta] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  } | null>(null);
 
-  // Calculate pagination
-  const totalPages = Math.ceil(users.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentUsers = users.slice(startIndex, endIndex);
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1); // Reset to first page when search changes
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Use API pagination (always available now since we always use search API)
+  const totalPages = paginationMeta?.totalPages || 1;
+  const currentUsers = users; // Users are already paginated from API
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -98,8 +122,18 @@ export default function UsersPage() {
       setLoading(true);
       setError("");
       try {
-        const usersData = await userService.getAllUsers();
-        setUsers(usersData);
+        // Always use search API to get pagination support
+        const result = await userService.searchUsers({
+          search: debouncedSearch || undefined,
+          role: roleFilter !== "all" ? roleFilter : undefined,
+          isActive: isActiveFilter !== "all" ? isActiveFilter === "true" : undefined,
+          page: currentPage,
+          limit: itemsPerPage,
+          sortBy,
+          sortOrder,
+        });
+        setUsers(result.users);
+        setPaginationMeta(result.meta);
       } catch (err) {
         const errorMessage = getErrorMessage(err);
         setError(errorMessage);
@@ -114,7 +148,7 @@ export default function UsersPage() {
     };
 
     fetchUsers();
-  }, [toast]);
+  }, [debouncedSearch, roleFilter, isActiveFilter, currentPage, sortBy, sortOrder, itemsPerPage, toast]);
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -301,9 +335,11 @@ export default function UsersPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
+              <div className="text-2xl font-bold">
+                {paginationMeta?.total ?? users.length}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Tổng số người dùng
+                {paginationMeta ? "Tổng số kết quả" : "Tổng số người dùng"}
               </p>
             </CardContent>
           </Card>
@@ -321,7 +357,7 @@ export default function UsersPage() {
               <p className="text-xs text-muted-foreground">
                 {users.length > 0
                   ? Math.round((users.filter((u) => u.isActive).length / users.length) * 100)
-                  : 0}% tổng số
+                  : 0}% trong danh sách
               </p>
             </CardContent>
           </Card>
@@ -336,7 +372,7 @@ export default function UsersPage() {
               <div className="text-2xl font-bold">
                 {users.filter((u) => !u.isActive).length}
               </div>
-              <p className="text-xs text-muted-foreground">Người dùng</p>
+              <p className="text-xs text-muted-foreground">Trong danh sách</p>
             </CardContent>
           </Card>
           <Card>
@@ -348,7 +384,7 @@ export default function UsersPage() {
               <div className="text-2xl font-bold">
                 {users.filter((u) => u.role === "admin").length}
               </div>
-              <p className="text-xs text-muted-foreground">Quản trị viên</p>
+              <p className="text-xs text-muted-foreground">Trong danh sách</p>
             </CardContent>
           </Card>
         </div>
@@ -363,11 +399,67 @@ export default function UsersPage() {
                   Tất cả người dùng đã đăng ký trong hệ thống
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Tìm kiếm..." className="pl-8 w-64" />
+                  <Input
+                    placeholder="Tìm kiếm email, tên..."
+                    className="pl-8 w-64"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => {
+                    setRoleFilter(e.target.value as "user" | "admin" | "all");
+                    setCurrentPage(1);
+                  }}
+                  className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="all">Tất cả vai trò</option>
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <select
+                  value={isActiveFilter}
+                  onChange={(e) => {
+                    setIsActiveFilter(e.target.value as "all" | "true" | "false");
+                    setCurrentPage(1);
+                  }}
+                  className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="true">Hoạt động</option>
+                  <option value="false">Không hoạt động</option>
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value as typeof sortBy);
+                    setCurrentPage(1);
+                  }}
+                  className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="createdAt">Ngày tạo</option>
+                  <option value="updatedAt">Ngày cập nhật</option>
+                  <option value="email">Email</option>
+                  <option value="firstName">Tên</option>
+                  <option value="lastName">Họ</option>
+                  <option value="role">Vai trò</option>
+                  <option value="isActive">Trạng thái</option>
+                </select>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => {
+                    setSortOrder(e.target.value as "ASC" | "DESC");
+                    setCurrentPage(1);
+                  }}
+                  className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="DESC">Giảm dần</option>
+                  <option value="ASC">Tăng dần</option>
+                </select>
               </div>
             </div>
           </CardHeader>
@@ -515,7 +607,7 @@ export default function UsersPage() {
               </div>
             )}
           </CardContent>
-          {totalPages > 1 && (
+          {paginationMeta && paginationMeta.totalPages > 1 && (
             <div className="border-t px-6 py-4">
               <Pagination>
                 <PaginationContent>
@@ -580,8 +672,22 @@ export default function UsersPage() {
                 </PaginationContent>
               </Pagination>
               <div className="mt-4 text-center text-sm text-muted-foreground">
-                Hiển thị {startIndex + 1}-{Math.min(endIndex, users.length)}{" "}
-                trong tổng số {users.length} người dùng
+                {paginationMeta ? (
+                  <>
+                    Hiển thị {(paginationMeta.page - 1) * paginationMeta.limit + 1}-
+                    {Math.min(
+                      paginationMeta.page * paginationMeta.limit,
+                      paginationMeta.total
+                    )}{" "}
+                    trong tổng số {paginationMeta.total} người dùng
+                  </>
+                ) : (
+                  <>
+                    Hiển thị {(currentPage - 1) * itemsPerPage + 1}-
+                    {Math.min(currentPage * itemsPerPage, users.length)}{" "}
+                    trong tổng số {users.length} người dùng
+                  </>
+                )}
               </div>
             </div>
           )}

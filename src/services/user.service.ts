@@ -169,6 +169,72 @@ class UserService extends BaseService {
       )
     );
   }
+
+  /**
+   * Search users with filters, pagination, and sorting (admin only)
+   *
+   * @param params - Search parameters
+   * @returns Users array and pagination meta
+   * @throws {ApiError} If user is not admin or request fails
+   */
+  async searchUsers(params: {
+    search?: string;
+    role?: "user" | "admin";
+    isActive?: boolean;
+    page?: number;
+    limit?: number;
+    sortBy?: "createdAt" | "updatedAt" | "email" | "firstName" | "lastName" | "role" | "isActive";
+    sortOrder?: "ASC" | "DESC";
+  }): Promise<{
+    users: User[];
+    meta: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> {
+    try {
+      // Build query string
+      const queryParams = new URLSearchParams();
+      if (params.search) queryParams.append("search", params.search);
+      if (params.role) queryParams.append("role", params.role);
+      if (params.isActive !== undefined) queryParams.append("isActive", String(params.isActive));
+      if (params.page) queryParams.append("page", String(params.page));
+      if (params.limit) queryParams.append("limit", String(params.limit));
+      if (params.sortBy) queryParams.append("sortBy", params.sortBy);
+      if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
+
+      const queryString = queryParams.toString();
+      const url = `/admin/users/search${queryString ? `?${queryString}` : ""}`;
+
+      const response = await apiClient.get<ApiResponse<User[]> & {
+        meta?: {
+          page: number;
+          limit: number;
+          total: number;
+          totalPages: number;
+        };
+      }>(url);
+      
+      // Handle response with meta
+      const responseData = response.data;
+
+      // Extract users and meta
+      const users = responseData?.data || [];
+      const meta = responseData?.meta || {
+        page: params.page || 1,
+        limit: params.limit || 10,
+        total: users.length,
+        totalPages: 1,
+      };
+
+      return { users, meta };
+    } catch (error) {
+      this.handleError(error);
+      throw error; // This will never be reached but satisfies TypeScript
+    }
+  }
 }
 
 // Export singleton instance
