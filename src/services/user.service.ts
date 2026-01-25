@@ -171,6 +171,30 @@ class UserService extends BaseService {
   }
 
   /**
+   * Update user (admin only)
+   *
+   * @param id - User ID (UUID)
+   * @param data - Partial user data (all fields optional)
+   * @returns Updated user data
+   * @throws {ApiError} If user is not admin or request fails
+   */
+  async updateUser(
+    id: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      password?: string;
+      role?: string;
+      isActive?: boolean;
+    }
+  ): Promise<User> {
+    return this.safeCall(() =>
+      apiClient.patch<ApiResponse<User>>(`/admin/users/${id}`, data)
+    );
+  }
+
+  /**
    * Search users with filters, pagination, and sorting (admin only)
    *
    * @param params - Search parameters

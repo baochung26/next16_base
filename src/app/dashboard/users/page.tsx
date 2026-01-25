@@ -69,6 +69,12 @@ const userSchema = z.object({
   email: z.string().email("Email không hợp lệ"),
   role: z.enum(["user", "admin"]),
   isActive: z.boolean(),
+  password: z
+    .union([
+      z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
+      z.literal(""),
+    ])
+    .optional(),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -158,6 +164,7 @@ export default function UsersPage() {
       email: "",
       role: "user",
       isActive: true,
+      password: "",
     },
   });
 
@@ -169,6 +176,7 @@ export default function UsersPage() {
       email: user.email,
       role: user.role as "user" | "admin",
       isActive: user.isActive,
+      password: "",
     });
     setEditDialogOpen(true);
   };
@@ -233,18 +241,21 @@ export default function UsersPage() {
 
     setIsSubmitting(true);
     try {
-      // TODO: Call update user API when available
-      // For now, just update local state
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const payload = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        role: data.role,
+        isActive: data.isActive,
+        ...(data.password && data.password.trim()
+          ? { password: data.password.trim() }
+          : {}),
+      };
+      const updatedUser = await userService.updateUser(selectedUser.id, payload);
 
       setUsers(
-        users.map((user) =>
-          user.id === selectedUser.id
-            ? {
-                ...user,
-                ...data,
-              }
-            : user
+        users.map((u) =>
+          u.id === selectedUser.id ? { ...u, ...updatedUser } : u
         )
       );
 
@@ -745,6 +756,23 @@ export default function UsersPage() {
                         <Input
                           type="email"
                           placeholder="email@example.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mật khẩu mới (tùy chọn)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Để trống nếu không đổi mật khẩu"
                           {...field}
                         />
                       </FormControl>
