@@ -105,6 +105,40 @@ class UserService extends BaseService {
       apiClient.get<ApiResponse<User[]>>("/admin/users")
     );
   }
+
+  /**
+   * Delete user (admin only)
+   *
+   * @param id - User ID (UUID)
+   * @returns Success message
+   * @throws {ApiError} If user is not admin or request fails
+   */
+  async deleteUser(id: string): Promise<{ message: string }> {
+    try {
+      const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+        `/admin/users/${id}`
+      );
+      
+      // Handle response - delete API returns { success, statusCode, message }
+      const responseData = response.data as ApiResponse<{ message: string }>;
+      
+      // If response has data field, return it
+      if (responseData?.data) {
+        return responseData.data;
+      }
+      
+      // If response has message directly, return it wrapped
+      if (responseData?.message) {
+        return { message: responseData.message };
+      }
+      
+      // Default success message
+      return { message: "User deleted successfully" };
+    } catch (error) {
+      this.handleError(error);
+      throw error; // This will never be reached but satisfies TypeScript
+    }
+  }
 }
 
 // Export singleton instance

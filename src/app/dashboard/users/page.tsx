@@ -186,11 +186,12 @@ export default function UsersPage() {
 
     setIsSubmitting(true);
     try {
-      // TODO: Call delete user API when available
-      // For now, just update local state
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Call delete user API
+      await userService.deleteUser(selectedUser.id);
 
       const deletedUserName = `${selectedUser.firstName} ${selectedUser.lastName}`;
+      
+      // Update local state after successful deletion
       const updatedUsers = users.filter((user) => user.id !== selectedUser.id);
       setUsers(updatedUsers);
 
