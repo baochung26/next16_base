@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
     // Extract token
     const token = authHeader.replace("Bearer ", "");
 
-    // Call backend API /auth/profile
-    const response = await fetch(`${BACKEND_API_URL}/auth/profile`, {
+    // GET /users/profile - response: { success, statusCode, message, data }
+    const response = await fetch(`${BACKEND_API_URL}/users/profile`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -36,15 +36,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: responseData.message || "Unauthorized",
+          message: responseData?.message || "Unauthorized",
           statusCode: response.status,
         },
         { status: response.status }
       );
     }
 
-    // Backend /auth/profile returns user data directly (not wrapped)
-    // Return as-is to match backend format
     return NextResponse.json(responseData, { status: response.status });
   } catch (error) {
     console.error("Get current user error:", error);

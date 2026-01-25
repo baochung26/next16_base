@@ -16,13 +16,15 @@ import type { User } from "@/types/api";
 class UserService extends BaseService {
   /**
    * Get current user profile
-   * Uses /auth/profile endpoint from backend
+   * GET /users/profile - response: { success, statusCode, message, data }
    *
    * @returns Current user data
    * @throws {ApiError} If user is not authenticated or request fails
    */
   async getCurrentUser(): Promise<User> {
-    return this.safeCall(() => apiClient.get<ApiResponse<User>>("/auth/profile"));
+    return this.safeCall(() =>
+      apiClient.get<ApiResponse<User>>("/users/profile")
+    );
   }
 
   /**
@@ -39,15 +41,20 @@ class UserService extends BaseService {
   }
 
   /**
-   * Update user profile
+   * Update own profile - PATCH /users/profile
+   * Chỉ cho phép: firstName, lastName, password. Không gửi email, role, isActive.
    *
-   * @param data - Partial user data to update
+   * @param data - { firstName?, lastName?, password? } (all optional)
    * @returns Updated user data
-   * @throws {ApiError} If update fails
+   * @throws {ApiError} If update fails (400 validation, 401 unauthorized)
    */
-  async updateProfile(data: Partial<User>): Promise<User> {
+  async updateProfile(data: {
+    firstName?: string;
+    lastName?: string;
+    password?: string;
+  }): Promise<User> {
     return this.safeCall(() =>
-      apiClient.patch<ApiResponse<User>>("/users/me", data)
+      apiClient.patch<ApiResponse<User>>("/users/profile", data)
     );
   }
 

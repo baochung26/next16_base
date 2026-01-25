@@ -9,7 +9,7 @@ import {
   ReactNode,
 } from "react";
 import { userService } from "@/services";
-import { getAccessToken, getUserInfo } from "@/lib/api/token";
+import { getAccessToken, getUserInfo, setUserInfo } from "@/lib/api/token";
 import type { User } from "@/types/api";
 
 interface AuthContextType {
@@ -122,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const userData = await userService.getCurrentUser();
         setUser(userData);
+        setUserInfo(userData); // đồng bộ cache để refresh/đóng mở tab vẫn đúng
         setEndpointAvailable(true); // Mark endpoint as available
       } catch (apiError: unknown) {
         const error = apiError as { statusCode?: number };
