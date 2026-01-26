@@ -36,16 +36,11 @@ export function Header() {
   const userIsAdmin = isAdminUser(user);
 
   const displayName = user
-    ? getUserDisplayName(
-        user.name,
-        user.email,
-        user.firstName,
-        user.lastName
-      )
+    ? getUserDisplayName(user.email, user.firstName, user.lastName)
     : "";
 
   const userInitials = user
-    ? getUserInitials(user.name, user.email, user.firstName, user.lastName)
+    ? getUserInitials(user.email, user.firstName, user.lastName)
     : "";
 
   return (

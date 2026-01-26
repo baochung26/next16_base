@@ -120,16 +120,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const displayName = user
-    ? getUserDisplayName(
-        user.name,
-        user.email,
-        user.firstName,
-        user.lastName
-      )
+    ? getUserDisplayName(user.email, user.firstName, user.lastName)
     : "";
 
   const userInitials = user
-    ? getUserInitials(user.name, user.email, user.firstName, user.lastName)
+    ? getUserInitials(user.email, user.firstName, user.lastName)
     : "";
 
   // Show loading or redirect if not admin

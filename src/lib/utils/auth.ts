@@ -48,55 +48,34 @@ export function isAdminUser(user: User | null | undefined): boolean {
 }
 
 /**
- * Get user display name
- * Supports both firstName/lastName format and legacy name format
+ * Lấy tên hiển thị: ưu tiên firstName + lastName, không có thì dùng phần trước @ của email.
  */
 export function getUserDisplayName(
-  name?: string | null,
   email?: string | null,
   firstName?: string | null,
   lastName?: string | null
 ): string {
-  // New format: firstName + lastName
   if (firstName || lastName) {
     return `${firstName || ""} ${lastName || ""}`.trim() || email?.split("@")[0] || "User";
   }
-  // Legacy format: name
-  return name || email?.split("@")[0] || "User";
+  return email?.split("@")[0] || "User";
 }
 
 /**
- * Get user initials for avatar
- * Supports both firstName/lastName format and legacy name format
+ * Lấy chữ cái đầu cho avatar: ưu tiên firstName[0]+lastName[0], không có thì email[0].
  */
 export function getUserInitials(
-  name?: string | null,
   email?: string | null,
   firstName?: string | null,
   lastName?: string | null
 ): string {
-  // New format: firstName + lastName
   if (firstName || lastName) {
     const first = firstName?.[0]?.toUpperCase() || "";
     const last = lastName?.[0]?.toUpperCase() || "";
-    if (first && last) {
-      return first + last;
-    }
+    if (first && last) return first + last;
     if (first) return first;
     if (last) return last;
   }
-  
-  // Legacy format: name
-  if (name) {
-    const parts = name.trim().split(" ");
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
-  
-  if (email) {
-    return email[0].toUpperCase();
-  }
+  if (email) return email[0].toUpperCase();
   return "U";
 }

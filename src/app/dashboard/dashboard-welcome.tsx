@@ -7,12 +7,7 @@ export function DashboardWelcome() {
   const { user } = useAuth();
 
   const displayName = user
-    ? getUserDisplayName(
-        user.name,
-        user.email,
-        user.firstName,
-        user.lastName
-      )
+    ? getUserDisplayName(user.email, user.firstName, user.lastName)
     : "Admin";
 
   return (
