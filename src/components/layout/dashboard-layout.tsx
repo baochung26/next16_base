@@ -28,7 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { clearTokens } from "@/lib/api/token";
+import { clearTokens, clearAuthCookies } from "@/lib/api/token";
 import {
   getUserDisplayName,
   getUserInitials,
@@ -113,8 +113,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = () => {
     clearTokens();
-    document.cookie = "accessToken=; path=/; max-age=0";
-    document.cookie = "refreshToken=; path=/; max-age=0";
+    clearAuthCookies();
     setUser(null);
     router.push("/");
     router.refresh();

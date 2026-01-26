@@ -18,7 +18,7 @@ import {
   getUserDisplayName,
   getUserInitials,
 } from "@/lib/utils/auth";
-import { clearTokens } from "@/lib/api/token";
+import { clearTokens, clearAuthCookies } from "@/lib/api/token";
 import { useAuth } from "@/contexts/auth-context";
 
 export function Header() {
@@ -27,9 +27,7 @@ export function Header() {
 
   const handleSignOut = async () => {
     clearTokens();
-    // Clear cookies
-    document.cookie = "accessToken=; path=/; max-age=0";
-    document.cookie = "refreshToken=; path=/; max-age=0";
+    clearAuthCookies();
     setUser(null);
     router.push("/");
     router.refresh();

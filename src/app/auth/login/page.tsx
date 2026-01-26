@@ -70,9 +70,14 @@ export default function LoginPage() {
 
       // Store token and user info
       if (response.access_token) {
-        const { setAccessToken, setUserInfo } = await import("@/lib/api/token");
+        const {
+          setAccessToken,
+          setUserInfo,
+          setAccessTokenCookie,
+        } = await import("@/lib/api/token");
         setAccessToken(response.access_token);
-        
+        setAccessTokenCookie(response.access_token);
+
         // Store user info
         const userInfo = {
           id: response.id,
@@ -100,9 +105,6 @@ export default function LoginPage() {
         setUser({
           ...userInfo,
         });
-
-        // Set cookie for server-side access
-        document.cookie = `accessToken=${response.access_token}; path=/; max-age=86400; SameSite=Lax`;
       }
 
       // User đã được set trực tiếp vào context ở trên, không cần refetch

@@ -63,6 +63,8 @@ export const APP_CONFIG = {
     TOKEN_KEY: "accessToken",
     REFRESH_TOKEN_KEY: "refreshToken",
     USER_INFO_KEY: "userInfo",
+    /** Cookie max-age (seconds). 86400 = 24h. Used for accessToken cookie. */
+    COOKIE_MAX_AGE: 86400,
   },
 } as const;
 

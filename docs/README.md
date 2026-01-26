@@ -41,6 +41,12 @@ Tài liệu đầy đủ cho project development.
   - Authentication flow
   - API architecture
 
+- **[Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md)** - Lưu trữ token & bảo mật
+  - localStorage vs cookie, mục đích từng nơi
+  - Tại sao Next.js cần cả hai (server không có localStorage)
+  - So sánh React thuần vs Next.js
+  - Rủi ro lộ lọt cookie, khuyến nghị và checklist
+
 - **[Coding Standards](./CODING_STANDARDS.md)** - Chuẩn code
   - TypeScript standards
   - React standards
@@ -98,6 +104,8 @@ Tài liệu đầy đủ cho project development.
 
 - **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Phân tích `auth-context.tsx`
 
+- **[Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md)** - localStorage, cookie, Next.js vs React, rủi ro lộ lọt
+
 - **[State Management Guide](./STATE_MANAGEMENT.md)** - Quản lý state
   - Current approach
   - State types
@@ -147,6 +155,7 @@ Tài liệu đầy đủ cho project development.
 | Fix error           | [Troubleshooting Guide](./TROUBLESHOOTING.md)               |
 | Deploy              | [Deployment Guide](./DEPLOYMENT.md)                         |
 | Git workflow        | [Git Workflow](./GIT_WORKFLOW.md)                           |
+| Auth storage & security | [Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md) |
 
 ### Code Examples
 
