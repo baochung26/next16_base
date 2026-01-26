@@ -100,6 +100,14 @@ Tài liệu đầy đủ cho project development.
   - API issues
   - Authentication issues
 
+- **[Optimization Guide](./OPTIMIZATION_GUIDE.md)** - Tối ưu source code
+  - Tách component lớn thành nhỏ
+  - Performance optimization (memoization)
+  - Custom hooks
+  - Giảm code duplication
+  - Type safety
+  - Checklist tối ưu
+
 ### 📖 Reference
 
 - **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Phân tích `auth-context.tsx`
@@ -156,6 +164,7 @@ Tài liệu đầy đủ cho project development.
 | Deploy              | [Deployment Guide](./DEPLOYMENT.md)                         |
 | Git workflow        | [Git Workflow](./GIT_WORKFLOW.md)                           |
 | Auth storage & security | [Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md) |
+| Optimize code      | [Optimization Guide](./OPTIMIZATION_GUIDE.md)              |
 
 ### Code Examples
 
