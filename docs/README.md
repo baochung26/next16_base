@@ -114,6 +114,12 @@ Tài liệu đầy đủ cho project development.
   - Hybrid approach
   - Ví dụ cụ thể cho project
 
+- **[Why Both localStorage and Cookie](./WHY_BOTH_LOCALSTORAGE_AND_COOKIE.md)** - Tại sao cần cả hai
+  - Có thể chỉ dùng cookie không?
+  - Ưu điểm localStorage so với cookie
+  - So sánh chi tiết
+  - Khi nào nên dùng gì
+
 ### 📖 Reference
 
 - **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Phân tích `auth-context.tsx`
@@ -172,6 +178,7 @@ Tài liệu đầy đủ cho project development.
 | Auth storage & security | [Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md) |
 | Optimize code      | [Optimization Guide](./OPTIMIZATION_GUIDE.md)              |
 | Server vs Client fetching | [Server vs Client Fetching](./SERVER_VS_CLIENT_FETCHING.md) |
+| Why localStorage + cookie | [Why Both localStorage and Cookie](./WHY_BOTH_LOCALSTORAGE_AND_COOKIE.md) |
 
 ### Code Examples
 
