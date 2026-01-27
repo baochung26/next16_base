@@ -992,41 +992,411 @@ function Component() {
 - Mỗi route là một bundle riêng
 - Dynamic imports cho lazy loading
 
+#### 1. Route-based Code Splitting (Tự động)
+
+Next.js tự động tách code theo route:
+
+```
+app/
+├── page.tsx          → bundle-1.js (homepage)
+├── about/
+│   └── page.tsx      → bundle-2.js (about page)
+└── dashboard/
+    └── page.tsx      → bundle-3.js (dashboard page)
+```
+
+**Lợi ích:**
+- User chỉ tải code cần thiết cho route hiện tại
+- Initial bundle nhỏ hơn → load nhanh hơn
+- Các route khác load khi user navigate
+
+**Ví dụ:**
+- User vào `/` → chỉ tải `bundle-1.js` (homepage)
+- User navigate đến `/about` → tải `bundle-2.js` (about page)
+- Không tải code của `/dashboard` nếu chưa vào
+
+#### 2. Dynamic Imports (Lazy Loading)
+
+**Khi nào dùng:**
+- Component lớn, không cần ngay (modals, charts, heavy libraries)
+- Component chỉ hiện khi user tương tác (dropdown, tooltip)
+- Third-party libraries nặng (chart libraries, rich text editors)
+
+**Cú pháp:**
 ```typescript
-// Dynamic import
+import dynamic from "next/dynamic";
+
+// Basic dynamic import
+const HeavyComponent = dynamic(() => import("./HeavyComponent"));
+
+// Với loading state
 const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
-  loading: () => <Loading />,
-  ssr: false, // Disable SSR nếu cần
+  loading: () => <Loading />, // Hiển thị khi đang load
+});
+
+// Disable SSR (nếu component chỉ chạy trên client)
+const Chart = dynamic(() => import("./Chart"), {
+  ssr: false, // Không render trên server
+  loading: () => <div>Loading chart...</div>,
 });
 ```
+
+**Ví dụ thực tế:**
+```typescript
+// ❌ Bad: Import tất cả ngay
+import { Chart } from "heavy-chart-library"; // 500KB
+
+function Dashboard() {
+  return <Chart data={data} />; // Tải 500KB ngay cả khi không cần
+}
+
+// ✅ Good: Dynamic import
+const Chart = dynamic(() => import("heavy-chart-library").then(mod => mod.Chart), {
+  ssr: false, // Chart chỉ render trên client
+  loading: () => <div>Loading chart...</div>,
+});
+
+function Dashboard() {
+  const [showChart, setShowChart] = useState(false);
+  
+  return (
+    <>
+      <Button onClick={() => setShowChart(true)}>Show Chart</Button>
+      {showChart && <Chart data={data} />} {/* Chỉ load khi user click */}
+    </>
+  );
+}
+```
+
+**Lưu ý:**
+- `ssr: false` → component không render trên server (chỉ client)
+- Dùng khi component cần browser APIs (`window`, `document`, etc.)
+- Hoặc khi component quá nặng, không cần SEO
 
 ### Memoization
 
-**useMemo - Cache expensive calculations:**
+Memoization = **Cache kết quả** để tránh tính lại không cần thiết.
 
+#### 1. useMemo - Cache Expensive Calculations
+
+**Khi nào dùng:**
+- Tính toán phức tạp (filter, sort, map với logic phức tạp)
+- Tạo objects/arrays mới mỗi render (có thể gây re-render children)
+
+**Cú pháp:**
 ```typescript
-const expensiveValue = useMemo(() => {
-  return heavyCalculation(data);
-}, [data]); // Chỉ tính lại khi `data` thay đổi
+const memoizedValue = useMemo(() => {
+  return expensiveCalculation(a, b);
+}, [a, b]); // Chỉ tính lại khi a hoặc b thay đổi
 ```
 
-**useCallback - Cache functions:**
-
+**Ví dụ thực tế từ project:**
 ```typescript
-const handleClick = useCallback(() => {
-  doSomething(id);
-}, [id]); // Function reference không đổi trừ khi `id` thay đổi
+// ❌ Bad: Tính lại mỗi render
+function UsersPage() {
+  const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // ❌ Tính lại mỗi render, ngay cả khi users/searchQuery không đổi
+  const filteredUsers = users.filter(u => 
+    u.email.includes(searchQuery) || 
+    u.firstName.includes(searchQuery)
+  );
+  
+  // ❌ Tính lại mỗi render
+  const activeUsersCount = users.filter(u => u.isActive).length;
+  
+  return <UsersTable users={filteredUsers} />;
+}
+
+// ✅ Good: Memoize
+function UsersPage() {
+  const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // ✅ Chỉ tính lại khi users hoặc searchQuery thay đổi
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery) return users;
+    const query = searchQuery.toLowerCase();
+    return users.filter(u => 
+      u.email.toLowerCase().includes(query) || 
+      u.firstName.toLowerCase().includes(query)
+    );
+  }, [users, searchQuery]);
+  
+  // ✅ Chỉ tính lại khi users thay đổi
+  const activeUsersCount = useMemo(
+    () => users.filter(u => u.isActive).length,
+    [users]
+  );
+  
+  return <UsersTable users={filteredUsers} />;
+}
 ```
 
-**React.memo - Prevent re-renders:**
-
+**Khi KHÔNG nên dùng useMemo:**
 ```typescript
-const ExpensiveComponent = React.memo(function Component({ data }) {
-  return <div>{data}</div>;
+// ❌ Bad: Tính toán đơn giản, không cần memoize
+const sum = useMemo(() => a + b, [a, b]); // ❌ Overhead lớn hơn lợi ích
+
+// ✅ Good: Tính trực tiếp
+const sum = a + b; // ✅ Đơn giản, nhanh hơn
+
+// ❌ Bad: Dependencies thay đổi mỗi render
+const result = useMemo(() => {
+  return processData(data);
+}, [data, new Date()]); // ❌ new Date() tạo giá trị mới mỗi render → luôn tính lại
+
+// ✅ Good: Stable dependencies
+const result = useMemo(() => {
+  return processData(data);
+}, [data]); // ✅ Chỉ tính lại khi data thay đổi
+```
+
+#### 2. useCallback - Cache Functions
+
+**Khi nào dùng:**
+- Function được pass xuống child component (tránh re-render child)
+- Function trong dependency array của useEffect/useMemo
+- Event handlers được dùng nhiều lần
+
+**Cú pháp:**
+```typescript
+const memoizedCallback = useCallback(() => {
+  doSomething(a, b);
+}, [a, b]); // Function reference không đổi trừ khi a hoặc b thay đổi
+```
+
+**Ví dụ thực tế từ project:**
+```typescript
+// src/contexts/auth-context.tsx
+const refetch = useCallback(async (forceRefresh = false) => {
+  // ... fetch logic
+}, [endpointAvailable]); // ✅ Function reference stable, chỉ đổi khi endpointAvailable đổi
+
+// Sử dụng trong useEffect
+useEffect(() => {
+  refetch(); // ✅ Không gây infinite loop vì refetch stable
+}, [refetch]);
+```
+
+**Ví dụ: Tránh re-render child component**
+```typescript
+// ❌ Bad: Tạo function mới mỗi render → ChildComponent re-render
+function Parent() {
+  const [count, setCount] = useState(0);
+  const [name, setName] = useState("");
+  
+  const handleClick = () => {
+    console.log("Clicked");
+  }; // ❌ Function mới mỗi render
+  
+  return (
+    <>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <ChildComponent onClick={handleClick} /> {/* Re-render mỗi khi name thay đổi */}
+    </>
+  );
+}
+
+// ✅ Good: useCallback → Function reference stable
+function Parent() {
+  const [count, setCount] = useState(0);
+  const [name, setName] = useState("");
+  
+  const handleClick = useCallback(() => {
+    console.log("Clicked");
+  }, []); // ✅ Function reference không đổi
+  
+  return (
+    <>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <ChildComponent onClick={handleClick} /> {/* Không re-render khi name đổi */}
+    </>
+  );
+}
+
+// Child component với React.memo
+const ChildComponent = React.memo(({ onClick }) => {
+  console.log("Child rendered"); // Chỉ log khi onClick thay đổi
+  return <button onClick={onClick}>Click me</button>;
 });
 ```
 
+**Khi KHÔNG nên dùng useCallback:**
+```typescript
+// ❌ Bad: Function đơn giản, không pass xuống child
+const handleClick = useCallback(() => {
+  setCount(count + 1);
+}, [count]); // ❌ Overhead không cần thiết
+
+// ✅ Good: Function trực tiếp
+const handleClick = () => {
+  setCount(count + 1);
+};
+```
+
+#### 3. React.memo - Prevent Re-renders
+
+**Khi nào dùng:**
+- Component render tốn kém (nhiều DOM nodes, tính toán phức tạp)
+- Component nhận props không thay đổi thường xuyên
+- Component trong list lớn (table rows, list items)
+
+**Cú pháp:**
+```typescript
+const MemoizedComponent = React.memo(function Component({ data, onClick }) {
+  return <div>{data}</div>;
+}, (prevProps, nextProps) => {
+  // Optional: custom comparison
+  return prevProps.data.id === nextProps.data.id; // Chỉ re-render nếu id thay đổi
+});
+```
+
+**Ví dụ thực tế:**
+```typescript
+// ❌ Bad: Re-render mỗi khi parent re-render
+function UserTableRow({ user, onEdit, onDelete }) {
+  return (
+    <tr>
+      <td>{user.name}</td>
+      <td>{user.email}</td>
+      <td>
+        <Button onClick={() => onEdit(user)}>Edit</Button>
+        <Button onClick={() => onDelete(user)}>Delete</Button>
+      </td>
+    </tr>
+  );
+}
+
+// ✅ Good: Chỉ re-render khi props thay đổi
+const UserTableRow = React.memo(function UserTableRow({ user, onEdit, onDelete }) {
+  return (
+    <tr>
+      <td>{user.name}</td>
+      <td>{user.email}</td>
+      <td>
+        <Button onClick={() => onEdit(user)}>Edit</Button>
+        <Button onClick={() => onDelete(user)}>Delete</Button>
+      </td>
+    </tr>
+  );
+});
+
+// Sử dụng trong list
+function UsersTable({ users, onEdit, onDelete }) {
+  return (
+    <table>
+      <tbody>
+        {users.map(user => (
+          <UserTableRow 
+            key={user.id} 
+            user={user} 
+            onEdit={onEdit} 
+            onDelete={onDelete} 
+          />
+        ))}
+      </tbody>
+    </table>
+  );
+}
+```
+
+**Lưu ý quan trọng:**
+- `React.memo` chỉ so sánh **shallow** (so sánh reference, không so sánh deep)
+- Nếu pass object/array mới mỗi render → `React.memo` không có tác dụng
+
+```typescript
+// ❌ Bad: Object mới mỗi render → React.memo không có tác dụng
+function Parent() {
+  return <Child data={{ id: 1, name: "John" }} />; // ❌ Object mới mỗi render
+}
+
+// ✅ Good: Stable reference
+function Parent() {
+  const data = useMemo(() => ({ id: 1, name: "John" }), []);
+  return <Child data={data} />; // ✅ Object reference stable
+}
+```
+
+#### 4. Kết hợp useMemo + useCallback + React.memo
+
+**Ví dụ tối ưu hoàn chỉnh:**
+```typescript
+// Parent Component
+function UsersPage() {
+  const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // ✅ Memoize filtered users
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery) return users;
+    return users.filter(u => u.email.includes(searchQuery));
+  }, [users, searchQuery]);
+  
+  // ✅ Memoize callbacks
+  const handleEdit = useCallback((user: User) => {
+    setSelectedUser(user);
+    setEditDialogOpen(true);
+  }, []);
+  
+  const handleDelete = useCallback((user: User) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  }, []);
+  
+  return (
+    <UsersTable 
+      users={filteredUsers}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+    />
+  );
+}
+
+// Child Component với React.memo
+const UsersTable = React.memo(function UsersTable({ users, onEdit, onDelete }) {
+  return (
+    <table>
+      <tbody>
+        {users.map(user => (
+          <UserTableRow 
+            key={user.id}
+            user={user}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
+      </tbody>
+    </table>
+  );
+});
+
+// Row Component với React.memo
+const UserTableRow = React.memo(function UserTableRow({ user, onEdit, onDelete }) {
+  return (
+    <tr>
+      <td>{user.name}</td>
+      <td>{user.email}</td>
+      <td>
+        <Button onClick={() => onEdit(user)}>Edit</Button>
+        <Button onClick={() => onDelete(user)}>Delete</Button>
+      </td>
+    </tr>
+  );
+});
+```
+
+**Kết quả:**
+- `UsersPage` re-render → `filteredUsers` chỉ tính lại nếu `users` hoặc `searchQuery` đổi
+- `UsersTable` chỉ re-render nếu `users`, `onEdit`, hoặc `onDelete` đổi (nhờ `React.memo`)
+- `UserTableRow` chỉ re-render nếu `user`, `onEdit`, hoặc `onDelete` đổi (nhờ `React.memo`)
+
 ### Image Optimization
+
+Next.js `Image` component tự động optimize images.
+
+#### 1. Basic Usage
 
 ```typescript
 import Image from "next/image";
@@ -1036,10 +1406,127 @@ import Image from "next/image";
   width={500}
   height={300}
   alt="Description"
-  priority // Load ngay (above fold)
-  placeholder="blur" // Blur placeholder
 />
 ```
+
+**Tự động:**
+- **Lazy loading**: Chỉ load khi image vào viewport
+- **Responsive**: Tự động tạo nhiều sizes cho different screen sizes
+- **Format optimization**: Serve WebP/AVIF khi browser support
+- **Blur placeholder**: Hiển thị blur placeholder khi đang load
+
+#### 2. Props quan trọng
+
+**`priority`** - Load ngay (above fold images):
+```typescript
+<Image
+  src="/hero.jpg"
+  width={1200}
+  height={600}
+  alt="Hero"
+  priority // ✅ Load ngay, không lazy load (cho images above fold)
+/>
+```
+
+**`placeholder="blur"`** - Blur placeholder:
+```typescript
+import heroImage from "@/public/hero.jpg";
+
+<Image
+  src={heroImage}
+  width={1200}
+  height={600}
+  alt="Hero"
+  placeholder="blur" // ✅ Hiển thị blur placeholder khi đang load
+  blurDataURL="data:image/jpeg;base64,..." // Tự động generate nếu dùng import
+/>
+```
+
+**`sizes`** - Responsive sizes:
+```typescript
+<Image
+  src="/photo.jpg"
+  width={1200}
+  height={800}
+  alt="Photo"
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  // ✅ Mobile: 100% width, Tablet: 50% width, Desktop: 33% width
+/>
+```
+
+**`fill`** - Fill container:
+```typescript
+<div className="relative w-full h-64">
+  <Image
+    src="/photo.jpg"
+    fill // ✅ Fill container, không cần width/height
+    alt="Photo"
+    className="object-cover"
+  />
+</div>
+```
+
+#### 3. So sánh với `<img>` tag
+
+```typescript
+// ❌ Bad: Regular img tag
+<img src="/photo.jpg" alt="Photo" />
+// - Không optimize
+// - Không lazy load
+// - Không responsive
+// - Có thể gây layout shift
+
+// ✅ Good: Next.js Image
+<Image
+  src="/photo.jpg"
+  width={500}
+  height={300}
+  alt="Photo"
+/>
+// - Tự động optimize
+// - Lazy load
+// - Responsive
+// - Không layout shift
+```
+
+#### 4. External Images
+
+```typescript
+// next.config.js
+module.exports = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+      },
+    ],
+  },
+}
+
+// Component
+<Image
+  src="https://example.com/photo.jpg"
+  width={500}
+  height={300}
+  alt="Photo"
+/>
+```
+
+### Tóm tắt: Khi nào dùng gì?
+
+| Tool | Khi nào dùng | Khi nào KHÔNG dùng |
+|------|--------------|-------------------|
+| **useMemo** | Tính toán phức tạp, tạo objects/arrays | Tính toán đơn giản (a + b) |
+| **useCallback** | Functions pass xuống children, trong deps | Functions đơn giản, không pass xuống |
+| **React.memo** | Component render tốn kém, props ít đổi | Component nhỏ, props thay đổi thường xuyên |
+| **dynamic()** | Component lớn, không cần ngay | Component nhỏ, cần ngay |
+| **Image** | Tất cả images | Icons nhỏ (< 1KB), SVG |
+
+**Nguyên tắc chung:**
+- ✅ **Measure first**: Dùng React DevTools Profiler để tìm bottlenecks
+- ✅ **Optimize sau**: Không optimize sớm, chỉ optimize khi có vấn đề
+- ✅ **Đơn giản trước**: Code đơn giản dễ maintain hơn code over-optimized
 
 ## ✅ Best Practices
 
