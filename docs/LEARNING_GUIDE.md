@@ -961,6 +961,229 @@ function Component() {
 }
 ```
 
+#### router.refresh() - Giải thích chi tiết
+
+**`router.refresh()`** là một method đặc biệt của Next.js App Router để **refresh Server Components** mà không reload toàn bộ page.
+
+##### 1. `router.refresh()` làm gì?
+
+```typescript
+router.refresh();
+```
+
+**Hành động:**
+1. ✅ **Re-fetch data** từ Server Components (không reload page)
+2. ✅ **Re-run Server Components** với data mới
+3. ✅ **Update HTML** của Server Components parts
+4. ❌ **KHÔNG reload** toàn bộ page (giữ state của Client Components)
+5. ❌ **KHÔNG** navigate (vẫn ở cùng URL)
+
+**Ví dụ:**
+```typescript
+// User đang ở trang "/"
+router.refresh();
+// → Vẫn ở "/", nhưng Server Components được re-fetch và re-render
+```
+
+##### 2. So sánh với các method khác
+
+| Method | Làm gì? | Reload page? | Mất state? | Use case |
+|--------|---------|--------------|------------|----------|
+| **`router.refresh()`** | Re-fetch Server Components | ❌ Không | ❌ Không | Update server data |
+| **`router.push("/")`** | Navigate đến route mới | ❌ Không | ❌ Không | Điều hướng |
+| **`window.location.reload()`** | Reload toàn bộ page | ✅ Có | ✅ Có | Hard refresh |
+
+**Ví dụ cụ thể:**
+
+```typescript
+// ❌ window.location.reload() - Reload toàn bộ
+window.location.reload();
+// → Reload page, mất tất cả state, mất scroll position
+// → Chậm (phải tải lại HTML, CSS, JS)
+
+// ✅ router.push() - Navigate
+router.push("/dashboard");
+// → Navigate đến /dashboard, không reload
+// → Fast, giữ state
+
+// ✅ router.refresh() - Refresh Server Components
+router.refresh();
+// → Re-fetch Server Components, không reload
+// → Fast, giữ state, update server data
+```
+
+##### 3. Tại sao cần `router.refresh()` sau khi login?
+
+**Vấn đề:**
+```typescript
+// Login thành công
+setAccessToken(token);        // localStorage
+setAccessTokenCookie(token);  // cookie
+setUser(userInfo);            // React state
+
+router.push("/"); // Navigate về home
+// ❌ Vấn đề: Server Components trên "/" vẫn dùng data CŨ
+//    - Middleware đã chạy với cookie CŨ (chưa có token)
+//    - Server Components đã render với data CŨ
+```
+
+**Giải pháp:**
+```typescript
+// Login thành công
+setAccessToken(token);
+setAccessTokenCookie(token);
+setUser(userInfo);
+
+router.push("/");
+router.refresh(); // ✅ Re-fetch Server Components với cookie MỚI
+// → Middleware chạy lại với cookie mới (có token)
+// → Server Components re-fetch với token mới
+// → UI update với data mới
+```
+
+**Ví dụ thực tế từ project:**
+
+```typescript
+// src/app/auth/login/page.tsx
+const onSubmit = async (values) => {
+  const response = await authService.login({ email, password });
+  
+  // Lưu token
+  setAccessToken(response.access_token);
+  setAccessTokenCookie(response.access_token); // ✅ Cookie mới
+  
+  // Navigate về home
+  router.push("/");
+  
+  // ✅ Refresh Server Components để chúng đọc cookie MỚI
+  router.refresh();
+};
+```
+
+**Luồng hoạt động:**
+
+```
+1. User login thành công
+   ↓
+2. setAccessTokenCookie(token) → Cookie mới được set
+   ↓
+3. router.push("/") → Navigate về home (nhưng Server Components chưa biết cookie mới)
+   ↓
+4. router.refresh() → Re-fetch Server Components
+   ↓
+5. Server Components đọc cookie MỚI → Fetch data với token mới
+   ↓
+6. UI update với data mới
+```
+
+##### 4. Khi nào dùng `router.refresh()`?
+
+**✅ Dùng khi:**
+- Sau khi **login/logout** → Server Components cần đọc cookie mới
+- Sau khi **update data** trên server → Cần re-fetch Server Components
+- Sau khi **mutate data** (create, update, delete) → Cần refresh để thấy thay đổi
+
+**Ví dụ từ project:**
+
+```typescript
+// src/app/auth/login/page.tsx - Sau login
+router.push("/");
+router.refresh(); // ✅ Re-fetch Server Components với cookie mới
+
+// src/components/layout/header.tsx - Sau logout
+clearTokens();
+clearAuthCookies();
+router.push("/");
+router.refresh(); // ✅ Re-fetch Server Components (cookie đã xóa)
+
+// src/components/layout/dashboard-layout.tsx - Sau logout
+handleLogout();
+router.push("/");
+router.refresh(); // ✅ Re-fetch Server Components
+```
+
+**❌ KHÔNG cần khi:**
+- Chỉ update **Client Component state** → Không cần refresh
+- Chỉ navigate → `router.push()` đủ
+- Data không liên quan đến Server Components → Không cần refresh
+
+##### 5. Ví dụ chi tiết: Login flow
+
+**Không có `router.refresh()`:**
+
+```typescript
+// Login thành công
+setAccessTokenCookie(token);
+router.push("/");
+
+// ❌ Vấn đề:
+// 1. Browser navigate về "/"
+// 2. Server Components render với cookie CŨ (chưa có token)
+// 3. Middleware check → Không có token → Redirect về login (nếu protected)
+// 4. Hoặc Server Components không có user data
+```
+
+**Có `router.refresh()`:**
+
+```typescript
+// Login thành công
+setAccessTokenCookie(token);
+router.push("/");
+router.refresh(); // ✅
+
+// ✅ Hoạt động đúng:
+// 1. Browser navigate về "/"
+// 2. router.refresh() → Re-fetch Server Components
+// 3. Server Components đọc cookie MỚI (có token)
+// 4. Middleware check → Có token → Cho phép
+// 5. Server Components fetch user data với token mới
+// 6. UI hiển thị đúng với user đã login
+```
+
+##### 6. So sánh với `router.push()` + `router.refresh()`
+
+**Chỉ `router.push()`:**
+```typescript
+router.push("/");
+// → Navigate, nhưng Server Components dùng data CŨ (cache)
+```
+
+**`router.push()` + `router.refresh()`:**
+```typescript
+router.push("/");
+router.refresh();
+// → Navigate + Re-fetch Server Components với data MỚI
+```
+
+**Khi nào cần cả hai:**
+- Sau khi **mutate data** (login, logout, update) → Cần refresh để Server Components đọc data mới
+- Sau khi **set cookie** → Cần refresh để Server Components đọc cookie mới
+
+##### 7. Tóm tắt
+
+**`router.refresh()`:**
+- ✅ Re-fetch Server Components
+- ✅ Update HTML của Server Components
+- ✅ Không reload page
+- ✅ Giữ state của Client Components
+- ✅ Fast (chỉ fetch data, không reload JS/CSS)
+
+**Khi nào dùng:**
+- Sau login/logout (cookie thay đổi)
+- Sau mutate data (create, update, delete)
+- Khi cần Server Components đọc data mới
+
+**Ví dụ trong project:**
+```typescript
+// src/app/auth/login/page.tsx
+router.push("/");
+router.refresh(); // ✅ Re-fetch Server Components với cookie mới
+
+// src/components/layout/header.tsx
+router.push("/");
+router.refresh(); // ✅ Re-fetch Server Components sau logout
+```
+
 ### Custom Hooks
 
 **Tái sử dụng logic.**
