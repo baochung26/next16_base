@@ -108,6 +108,12 @@ Tài liệu đầy đủ cho project development.
   - Type safety
   - Checklist tối ưu
 
+- **[Server vs Client Fetching](./SERVER_VS_CLIENT_FETCHING.md)** - Khi nào fetch data ở đâu
+  - Tại sao project hiện tại dùng Client Components
+  - Khi nào nên dùng Server Components
+  - Hybrid approach
+  - Ví dụ cụ thể cho project
+
 ### 📖 Reference
 
 - **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Phân tích `auth-context.tsx`
@@ -165,6 +171,7 @@ Tài liệu đầy đủ cho project development.
 | Git workflow        | [Git Workflow](./GIT_WORKFLOW.md)                           |
 | Auth storage & security | [Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md) |
 | Optimize code      | [Optimization Guide](./OPTIMIZATION_GUIDE.md)              |
+| Server vs Client fetching | [Server vs Client Fetching](./SERVER_VS_CLIENT_FETCHING.md) |
 
 ### Code Examples
 

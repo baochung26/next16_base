@@ -629,45 +629,319 @@ setCount(prev => prev + 1);
 
 **Side effects sau render.**
 
+`useEffect` cho phép bạn thực hiện **side effects** (tác dụng phụ) sau khi component đã render xong. Side effects là những thao tác không liên quan đến việc render UI, như:
+- Fetch data từ API
+- Subscribe/unsubscribe events
+- Set timers/intervals
+- Update document title
+- Logging, analytics
+
+#### 1. Cú pháp cơ bản
+
 ```typescript
 useEffect(() => {
-  // Chạy sau mỗi render
+  // Code chạy sau mỗi render
   console.log("Component rendered");
 });
+```
 
+**⚠️ Lưu ý:** Không có dependency array → chạy **sau mỗi lần render** (có thể gây infinite loop nếu setState trong đây).
+
+#### 2. Chạy 1 lần sau mount (Empty dependency array)
+
+```typescript
 useEffect(() => {
-  // Chạy 1 lần sau mount
+  // Chạy 1 lần duy nhất sau khi component mount (lần đầu render)
   fetchData();
-}, []); // ← Empty dependency array
+}, []); // ← Empty array = không phụ thuộc vào gì cả
+```
 
+**Khi nào dùng:**
+- Fetch initial data khi component mount
+- Setup subscriptions, timers
+- One-time initialization
+
+**Ví dụ trong project:**
+```typescript
+// src/contexts/auth-context.tsx
+useEffect(() => {
+  // Fetch user khi component mount lần đầu
+  refetch();
+}, [refetch]); // refetch được wrap trong useCallback nên stable
+```
+
+#### 3. Chạy khi dependencies thay đổi
+
+```typescript
 useEffect(() => {
   // Chạy khi `userId` thay đổi
   fetchUser(userId);
-}, [userId]); // ← Dependencies
+}, [userId]); // ← Chỉ chạy lại khi userId thay đổi
 ```
 
-**Cleanup:**
+**Cách hoạt động:**
+1. Lần đầu render: chạy effect với `userId` hiện tại
+2. Khi `userId` thay đổi: cleanup function chạy (nếu có) → effect mới chạy với `userId` mới
+3. Khi `userId` không đổi: bỏ qua effect
+
+**Ví dụ trong project:**
+```typescript
+// src/app/auth/login/page.tsx
+useEffect(() => {
+  // Chạy khi searchParams thay đổi
+  if (searchParams.get("registered") === "true") {
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 5000);
+  }
+}, [searchParams]); // ← Chạy lại khi searchParams thay đổi
+```
+
+#### 4. Cleanup function
+
+Cleanup function chạy **trước khi**:
+- Component unmount (bị xóa khỏi DOM)
+- Effect chạy lại (khi dependencies thay đổi)
+
 ```typescript
 useEffect(() => {
   const timer = setInterval(() => {
     console.log("Tick");
   }, 1000);
   
-  // Cleanup khi unmount hoặc dependencies change
+  // Cleanup: chạy trước khi effect chạy lại hoặc component unmount
   return () => {
-    clearInterval(timer);
+    clearInterval(timer); // ✅ Quan trọng: tránh memory leak
   };
 }, []);
 ```
 
-**Ví dụ trong project:**
+**Ví dụ thực tế trong project:**
+```typescript
+// src/app/dashboard/users/page.tsx
+useEffect(() => {
+  // Debounce search query
+  const timer = setTimeout(() => {
+    setDebouncedSearch(searchQuery);
+    setCurrentPage(1);
+  }, 500);
+
+  // ✅ Cleanup: xóa timer nếu searchQuery thay đổi trước khi 500ms
+  // Tránh: setDebouncedSearch được gọi với giá trị cũ
+  return () => clearTimeout(timer);
+}, [searchQuery]);
+```
+
+**Tại sao cần cleanup?**
+- **Memory leaks**: Timers, subscriptions không được clear → tiếp tục chạy sau khi component unmount
+- **Stale closures**: Effect có thể dùng giá trị cũ nếu không cleanup đúng cách
+- **Race conditions**: API call cũ có thể overwrite kết quả mới
+
+#### 5. Multiple effects
+
+Bạn có thể có nhiều `useEffect` trong một component:
+
+```typescript
+function Component() {
+  // Effect 1: Fetch data khi mount
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Effect 2: Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Effect 3: Fetch khi filters thay đổi
+  useEffect(() => {
+    fetchUsers({ search: debouncedSearch, role: roleFilter });
+  }, [debouncedSearch, roleFilter]);
+}
+```
+
+**Best practice:** Tách effects theo mục đích (fetch, debounce, subscriptions) thay vì gộp tất cả vào một effect.
+
+#### 6. Common mistakes và cách tránh
+
+**❌ Mistake 1: Missing dependencies**
+
+```typescript
+// ❌ Bad: Thiếu dependencies
+useEffect(() => {
+  fetchUser(userId); // Dùng userId nhưng không khai báo trong deps
+}, []); // ← ESLint sẽ warning
+
+// ✅ Good: Đầy đủ dependencies
+useEffect(() => {
+  fetchUser(userId);
+}, [userId]);
+```
+
+**❌ Mistake 2: Infinite loop**
+
+```typescript
+// ❌ Bad: Infinite loop
+useEffect(() => {
+  setCount(count + 1); // setState → re-render → effect chạy lại → setState → ...
+}, [count]); // ← count thay đổi → effect chạy lại → count thay đổi → ...
+
+// ✅ Good: Dùng functional update
+useEffect(() => {
+  setCount(prev => prev + 1); // Không phụ thuộc vào count
+}, []); // Chỉ chạy 1 lần
+```
+
+**❌ Mistake 3: Không cleanup**
+
+```typescript
+// ❌ Bad: Memory leak
+useEffect(() => {
+  const timer = setInterval(() => {
+    console.log("Tick");
+  }, 1000);
+  // Không cleanup → timer tiếp tục chạy sau unmount
+}, []);
+
+// ✅ Good: Cleanup
+useEffect(() => {
+  const timer = setInterval(() => {
+    console.log("Tick");
+  }, 1000);
+  return () => clearInterval(timer); // ✅ Cleanup
+}, []);
+```
+
+**❌ Mistake 4: Async function không đúng cách**
+
+```typescript
+// ❌ Bad: async function trực tiếp
+useEffect(async () => {
+  const data = await fetchData(); // ❌ useEffect không thể return Promise
+  setData(data);
+}, []);
+
+// ✅ Good: async function bên trong
+useEffect(() => {
+  const fetchData = async () => {
+    const data = await fetchData();
+    setData(data);
+  };
+  fetchData();
+}, []);
+```
+
+#### 7. So sánh với lifecycle methods (Class Components)
+
+| Class Component | useEffect |
+|----------------|-----------|
+| `componentDidMount` | `useEffect(() => {...}, [])` |
+| `componentDidUpdate` | `useEffect(() => {...}, [deps])` |
+| `componentWillUnmount` | `useEffect(() => { return () => {...} }, [])` |
+
+**Ví dụ:**
+```typescript
+// Class Component (cũ)
+class Component extends React.Component {
+  componentDidMount() {
+    fetchData();
+  }
+  
+  componentDidUpdate(prevProps) {
+    if (prevProps.userId !== this.props.userId) {
+      fetchUser(this.props.userId);
+    }
+  }
+  
+  componentWillUnmount() {
+    clearInterval(this.timer);
+  }
+}
+
+// Functional Component với useEffect (mới)
+function Component({ userId }) {
+  useEffect(() => {
+    fetchData();
+  }, []); // componentDidMount
+
+  useEffect(() => {
+    fetchUser(userId);
+  }, [userId]); // componentDidUpdate khi userId thay đổi
+
+  useEffect(() => {
+    const timer = setInterval(() => {}, 1000);
+    return () => clearInterval(timer); // componentWillUnmount
+  }, []);
+}
+```
+
+#### 8. Ví dụ thực tế từ project
+
+**Ví dụ 1: Debounce search (users/page.tsx)**
+```typescript
+// src/app/dashboard/users/page.tsx
+const [searchQuery, setSearchQuery] = useState("");
+const [debouncedSearch, setDebouncedSearch] = useState("");
+
+useEffect(() => {
+  // Đợi 500ms sau khi user ngừng gõ
+  const timer = setTimeout(() => {
+    setDebouncedSearch(searchQuery);
+    setCurrentPage(1); // Reset về trang 1
+  }, 500);
+
+  // Cleanup: Nếu user gõ tiếp trước 500ms, hủy timer cũ
+  return () => clearTimeout(timer);
+}, [searchQuery]);
+
+// Effect khác: Fetch users khi debouncedSearch thay đổi
+useEffect(() => {
+  fetchUsers({ search: debouncedSearch });
+}, [debouncedSearch]);
+```
+
+**Ví dụ 2: Fetch data khi mount (auth-context.tsx)**
 ```typescript
 // src/contexts/auth-context.tsx
 useEffect(() => {
-  // Fetch user khi component mount
+  // Fetch user khi AuthProvider mount (app khởi động)
   refetch();
-}, []);
+}, [refetch]); // refetch được wrap trong useCallback nên stable
 ```
+
+**Ví dụ 3: Watch URL params (login/page.tsx)**
+```typescript
+// src/app/auth/login/page.tsx
+const searchParams = useSearchParams();
+
+useEffect(() => {
+  // Hiển thị success message nếu có ?registered=true trong URL
+  if (searchParams.get("registered") === "true") {
+    setSuccess(true);
+    // Tự động ẩn sau 5 giây
+    const timer = setTimeout(() => setSuccess(false), 5000);
+    return () => clearTimeout(timer); // Cleanup
+  }
+}, [searchParams]);
+```
+
+#### 9. Tóm tắt
+
+| Pattern | Cú pháp | Khi nào chạy |
+|---------|---------|--------------|
+| **Mỗi render** | `useEffect(() => {...})` | Sau mỗi render (⚠️ dễ infinite loop) |
+| **Mount only** | `useEffect(() => {...}, [])` | 1 lần sau mount |
+| **When deps change** | `useEffect(() => {...}, [dep1, dep2])` | Khi dependencies thay đổi |
+| **With cleanup** | `useEffect(() => { return () => {...} }, [])` | Cleanup trước khi chạy lại/unmount |
+
+**Best practices:**
+- ✅ Luôn khai báo đầy đủ dependencies (hoặc disable ESLint rule nếu thực sự cần)
+- ✅ Cleanup timers, subscriptions, event listeners
+- ✅ Tách effects theo mục đích (không gộp quá nhiều logic)
+- ✅ Dùng `useCallback` cho functions trong dependencies
+- ✅ Tránh setState trực tiếp trong effect (dùng functional update nếu cần)
 
 ### useRouter
 
