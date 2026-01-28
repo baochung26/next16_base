@@ -2,11 +2,39 @@
 
 Tài liệu tổng hợp các điểm có thể tối ưu trong project, đặc biệt tập trung vào các page và components.
 
+## 📌 Trạng thái tối ưu
+
+### ✅ Đã hoàn thành
+
+- **Tách Component lớn thành nhỏ hơn** (Phần 1)
+  - ✅ Tách `dashboard/users/page.tsx` (903 dòng → ~280 dòng)
+  - ✅ Tạo 6 components: `UserStats`, `UserFilters`, `UserTable`, `UserPagination`, `UserEditDialog`, `UserDeleteDialog`
+  - ✅ Áp dụng `useCallback` cho event handlers
+  - ✅ Export types để reuse (`UserFormData`)
+
+- **Cải thiện Constants & Magic Values** (Phần 7)
+  - ✅ Thêm `DEBOUNCE` constants (SEARCH: 300ms, INPUT: 500ms)
+  - ✅ Thêm `TIMEOUT` constants (SUCCESS_MESSAGE: 5000ms, TOAST_REMOVE: 5000ms)
+  - ✅ Thêm `USER_ROLES` constants (USER, ADMIN)
+  - ✅ Thêm `FILTER_VALUES` constants (ALL, TRUE, FALSE)
+  - ✅ Thêm `SORT_ORDER` constants (ASC, DESC)
+  - ✅ Update `users/page.tsx` để sử dụng constants thay vì magic values
+  - ✅ Update `user-filters.tsx` để sử dụng constants
+  - ✅ Update `login/page.tsx` để sử dụng TIMEOUT constant
+
+### 🔄 Đang làm / Có thể làm tiếp
+
+- Tối ưu Performance với `useMemo` (không cần vì API đã paginate server-side)
+- Tạo Custom Hooks cho logic tái sử dụng (có thể làm sau nếu cần reuse)
+- Giảm Code Duplication (đã có utilities, có thể mở rộng thêm)
+- Cải thiện Type Safety (đã tốt, có thể cải thiện thêm)
+- Tối ưu Data Fetching (đã có debounce, có thể cân nhắc React Query nếu cần)
+
 ---
 
 ## 📋 Mục lục
 
-1. [Tách Component lớn thành nhỏ hơn](#1-tách-component-lớn-thành-nhỏ-hơn)
+1. [Tách Component lớn thành nhỏ hơn](#1-tách-component-lớn-thành-nhỏ-hơn) ✅ **ĐÃ HOÀN THÀNH**
 2. [Tối ưu Performance (Memoization)](#2-tối-ưu-performance-memoization)
 3. [Tách Logic thành Custom Hooks](#3-tách-logic-thành-custom-hooks)
 4. [Giảm Code Duplication](#4-giảm-code-duplication)
@@ -19,9 +47,9 @@ Tài liệu tổng hợp các điểm có thể tối ưu trong project, đặc 
 
 ---
 
-## 1. Tách Component lớn thành nhỏ hơn
+## 1. Tách Component lớn thành nhỏ hơn ✅ **ĐÃ HOÀN THÀNH**
 
-### ❌ Vấn đề hiện tại
+### ❌ Vấn đề hiện tại (Đã được giải quyết)
 
 **`src/app/dashboard/users/page.tsx`** - **903 dòng** - quá lớn, khó maintain:
 
@@ -29,7 +57,7 @@ Tài liệu tổng hợp các điểm có thể tối ưu trong project, đặc 
 - Khó test từng phần riêng
 - Khó reuse các phần (table, filters, stats cards)
 
-### ✅ Giải pháp: Tách thành components nhỏ
+### ✅ Giải pháp: Tách thành components nhỏ (Đã triển khai)
 
 #### 1.1. Tách Stats Cards
 
@@ -198,7 +226,49 @@ export function UserEditDialog({
 }
 ```
 
-**Kết quả:** `users/page.tsx` giảm từ **903 dòng** → **~200-300 dòng**, dễ maintain hơn.
+**Kết quả:** `users/page.tsx` giảm từ **903 dòng** → **~280 dòng**, dễ maintain hơn.
+
+### 📦 Các Components đã tạo:
+
+1. ✅ **`UserStats`** (`src/components/dashboard/users/user-stats.tsx`)
+   - Hiển thị 4 thẻ thống kê: Tổng người dùng, Đang hoạt động, Không hoạt động, Admin
+   - Nhận props: `users`, `total`
+
+2. ✅ **`UserFilters`** (`src/components/dashboard/users/user-filters.tsx`)
+   - Search input với debounce
+   - Filters: Role, Status, Sort By, Sort Order
+   - Tự động reset về page 1 khi filter thay đổi
+
+3. ✅ **`UserTable`** (`src/components/dashboard/users/user-table.tsx`)
+   - Bảng hiển thị danh sách users
+   - Actions: Edit, Activate/Deactivate, Delete
+   - Responsive với overflow-x-auto
+
+4. ✅ **`UserPagination`** (`src/components/dashboard/users/user-pagination.tsx`)
+   - Pagination controls với ellipsis
+   - Hiển thị thông tin "Hiển thị X-Y trong tổng Z"
+   - Tự động ẩn nếu chỉ có 1 trang
+
+5. ✅ **`UserEditDialog`** (`src/components/dashboard/users/user-edit-dialog.tsx`)
+   - Form chỉnh sửa user với validation
+   - Fields: firstName, lastName, email, password (optional), role, isActive
+   - Export type `UserFormData` để reuse
+
+6. ✅ **`UserDeleteDialog`** (`src/components/dashboard/users/user-delete-dialog.tsx`)
+   - Dialog xác nhận xóa user
+   - Hiển thị tên user cần xóa
+   - Loading state khi đang xóa
+
+### 📊 Kết quả thực tế:
+
+- **Trước:** 1 file 903 dòng
+- **Sau:** 1 page file (~280 dòng) + 6 component files
+- **Cải thiện:**
+  - ✅ Dễ maintain: mỗi component có trách nhiệm riêng
+  - ✅ Dễ test: có thể test từng component độc lập
+  - ✅ Dễ reuse: các components có thể dùng ở nơi khác
+  - ✅ Type safety: export types để dùng chung
+  - ✅ Performance: sử dụng `useCallback` cho event handlers
 
 ---
 
@@ -716,48 +786,74 @@ export function useUsersQuery() {
 
 ---
 
-## 7. Cải thiện Constants & Magic Values
+## 7. Cải thiện Constants & Magic Values ✅ **ĐÃ HOÀN THÀNH**
 
-### ❌ Vấn đề hiện tại
+### ❌ Vấn đề hiện tại (Đã được giải quyết)
 
-- Magic numbers: `10` (itemsPerPage), `300` (debounce), `5` (timeout seconds)
+- Magic numbers: `10` (itemsPerPage), `500` (debounce), `5000` (timeout)
 - Magic strings: `"user"`, `"admin"`, `"all"`, `"ASC"`, `"DESC"`
 
-### ✅ Giải pháp
+### ✅ Giải pháp: Thêm Constants (Đã triển khai)
+
+Đã thêm các constants vào `src/lib/constants.ts`:
 
 ```tsx
-// src/lib/constants.ts - Thêm vào
-export const PAGINATION = {
-  DEFAULT_PAGE_SIZE: 10,
-  MAX_PAGE_SIZE: 100,
-} as const;
-
+// Debounce Delays (milliseconds)
 export const DEBOUNCE = {
-  SEARCH: 300, // ms
-  INPUT: 500,
+  SEARCH: 300, // Search input debounce
+  INPUT: 500, // General input debounce
 } as const;
 
+// Timeout Values (milliseconds)
 export const TIMEOUT = {
-  SUCCESS_MESSAGE: 5000, // ms
-  TOAST_REMOVE: 5000,
+  SUCCESS_MESSAGE: 5000, // Success message auto-hide
+  TOAST_REMOVE: 5000, // Toast auto-remove
 } as const;
 
+// User Roles
 export const USER_ROLES = {
   USER: "user",
   ADMIN: "admin",
 } as const;
 
+// Filter Values
 export const FILTER_VALUES = {
   ALL: "all",
   TRUE: "true",
   FALSE: "false",
 } as const;
 
+// Sort Order
 export const SORT_ORDER = {
   ASC: "ASC",
   DESC: "DESC",
 } as const;
 ```
+
+**Lưu ý:** `PAGINATION.DEFAULT_PAGE_SIZE` đã có sẵn trong `APP_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE`.
+
+### ✅ Đã áp dụng:
+
+1. **`users/page.tsx`**:
+   - ✅ `itemsPerPage` → `APP_CONFIG.PAGINATION.DEFAULT_PAGE_SIZE`
+   - ✅ Debounce delay `500` → `DEBOUNCE.INPUT`
+   - ✅ Filter values `"all"`, `"true"`, `"false"` → `FILTER_VALUES.*`
+   - ✅ Sort order `"ASC"`, `"DESC"` → `SORT_ORDER.*`
+
+2. **`user-filters.tsx`**:
+   - ✅ Option values sử dụng constants thay vì magic strings
+   - ✅ `USER_ROLES.USER`, `USER_ROLES.ADMIN`
+   - ✅ `FILTER_VALUES.ALL`, `FILTER_VALUES.TRUE`, `FILTER_VALUES.FALSE`
+   - ✅ `SORT_ORDER.ASC`, `SORT_ORDER.DESC`
+
+3. **`login/page.tsx`**:
+   - ✅ Timeout `5000` → `TIMEOUT.SUCCESS_MESSAGE`
+
+**Kết quả:**
+- ✅ Code dễ maintain hơn (thay đổi giá trị ở một nơi)
+- ✅ Type-safe hơn (constants có type inference)
+- ✅ Tránh typo (IDE autocomplete)
+- ✅ Dễ refactor (find/replace constants)
 
 ---
 
@@ -841,17 +937,25 @@ const result = await withErrorHandling(
 
 ### 🔴 Ưu tiên cao (Làm ngay)
 
-- [ ] **Tách `dashboard/users/page.tsx`** (903 dòng) thành components nhỏ:
-  - [ ] `UserStats` component
-  - [ ] `UserFilters` component
-  - [ ] `UserTable` component
-  - [ ] `UserEditDialog` component
-  - [ ] `UserDeleteDialog` component
-- [ ] **Thêm `useMemo`** cho filtered/sorted/paginated users
-- [ ] **Thêm `useCallback`** cho event handlers
-- [ ] **Tạo custom hooks**: `useUsers`, `useSearchFilter`, `usePagination`
-- [ ] **Tạo utility functions**: `showSuccessToast`, `showErrorToast`
-- [ ] **Thêm constants** cho magic values
+- [x] **Tách `dashboard/users/page.tsx`** (903 dòng) thành components nhỏ ✅ **ĐÃ HOÀN THÀNH**
+  - [x] `UserStats` component (`src/components/dashboard/users/user-stats.tsx`)
+  - [x] `UserFilters` component (`src/components/dashboard/users/user-filters.tsx`)
+  - [x] `UserTable` component (`src/components/dashboard/users/user-table.tsx`)
+  - [x] `UserPagination` component (`src/components/dashboard/users/user-pagination.tsx`)
+  - [x] `UserEditDialog` component (`src/components/dashboard/users/user-edit-dialog.tsx`)
+  - [x] `UserDeleteDialog` component (`src/components/dashboard/users/user-delete-dialog.tsx`)
+  - [x] Refactor `users/page.tsx` sử dụng các components mới (~280 dòng)
+- [x] **Thêm `useCallback`** cho event handlers ✅ **ĐÃ ÁP DỤNG**
+- [x] **Thêm constants** cho magic values ✅ **ĐÃ HOÀN THÀNH**
+  - [x] `DEBOUNCE` constants (SEARCH, INPUT)
+  - [x] `TIMEOUT` constants (SUCCESS_MESSAGE, TOAST_REMOVE)
+  - [x] `USER_ROLES` constants (USER, ADMIN)
+  - [x] `FILTER_VALUES` constants (ALL, TRUE, FALSE)
+  - [x] `SORT_ORDER` constants (ASC, DESC)
+  - [x] Update code để sử dụng constants
+- [ ] **Thêm `useMemo`** cho filtered/sorted/paginated users (không cần vì API đã paginate server-side)
+- [ ] **Tạo custom hooks**: `useUsers`, `useSearchFilter`, `usePagination` (có thể làm sau nếu cần reuse)
+- [ ] **Tạo utility functions**: `showSuccessToast`, `showErrorToast` (đã có `useToast` hook)
 
 ### 🟡 Ưu tiên trung bình (Làm sau)
 
@@ -885,14 +989,50 @@ const result = await withErrorHandling(
 
 ## 🎯 Kết luận
 
-**Bắt đầu với:**
-1. Tách `dashboard/users/page.tsx` thành components nhỏ
-2. Thêm memoization cho computed values
-3. Tạo custom hooks cho logic tái sử dụng
-4. Tạo utility functions cho toast/error handling
+**Đã hoàn thành:**
+1. ✅ **Tách `dashboard/users/page.tsx` thành components nhỏ**
+   - Giảm từ 903 dòng → ~280 dòng
+   - Tạo 6 components riêng biệt
+   - Áp dụng `useCallback` cho event handlers
+   - Export types để reuse
 
-**Kết quả mong đợi:**
-- Code dễ maintain hơn (components nhỏ, tách biệt)
-- Performance tốt hơn (memoization, ít re-render)
-- Dễ test hơn (logic tách riêng, hooks testable)
-- Dễ reuse hơn (components, hooks, utilities)
+2. ✅ **Cải thiện Constants & Magic Values**
+   - Thêm `DEBOUNCE`, `TIMEOUT`, `USER_ROLES`, `FILTER_VALUES`, `SORT_ORDER` constants
+   - Update `users/page.tsx`, `user-filters.tsx`, `login/page.tsx` để sử dụng constants
+   - Loại bỏ magic numbers và magic strings
+
+**Kết quả đạt được:**
+- ✅ Code dễ maintain hơn (components nhỏ, tách biệt)
+- ✅ Dễ test hơn (có thể test từng component độc lập)
+- ✅ Dễ reuse hơn (components có thể dùng ở nơi khác)
+- ✅ Type safety tốt hơn (export types, constants với type inference)
+- ✅ Code nhất quán hơn (sử dụng constants thay vì magic values)
+- ✅ Dễ refactor hơn (thay đổi giá trị ở một nơi)
+
+**Có thể làm tiếp:**
+- Thêm `useMemo` cho computed values (không cần vì API đã paginate server-side)
+- Tạo custom hooks cho logic tái sử dụng (nếu có nhiều page tương tự)
+- Tạo utility functions cho toast/error handling (nếu muốn standardize thêm)
+- Cải thiện type safety (đã tốt, có thể cải thiện thêm)
+
+---
+
+## 📝 Changelog
+
+### 2026-01-28 - Tối ưu Users Page & Constants
+
+**Đã hoàn thành:**
+- ✅ Tách `users/page.tsx` (903 dòng) thành 6 components nhỏ
+- ✅ Tạo `UserStats`, `UserFilters`, `UserTable`, `UserPagination`, `UserEditDialog`, `UserDeleteDialog`
+- ✅ Refactor page sử dụng các components mới
+- ✅ Áp dụng `useCallback` cho event handlers
+- ✅ Export `UserFormData` type để reuse
+- ✅ Thêm constants: `DEBOUNCE`, `TIMEOUT`, `USER_ROLES`, `FILTER_VALUES`, `SORT_ORDER`
+- ✅ Update `users/page.tsx`, `user-filters.tsx`, `login/page.tsx` để sử dụng constants
+- ✅ Loại bỏ magic numbers và magic strings
+
+**Kết quả:**
+- Page file giảm từ 903 → ~280 dòng
+- Code dễ maintain, test, và reuse hơn
+- Code nhất quán hơn với constants thay vì magic values
+- Type-safe hơn với constants có type inference

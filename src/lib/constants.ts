@@ -131,3 +131,34 @@ export const DATE_FORMATS = {
   API: "YYYY-MM-DD",
   DATETIME: "YYYY-MM-DDTHH:mm:ss",
 } as const;
+
+// Debounce Delays (milliseconds)
+export const DEBOUNCE = {
+  SEARCH: 300, // Search input debounce
+  INPUT: 500, // General input debounce
+} as const;
+
+// Timeout Values (milliseconds)
+export const TIMEOUT = {
+  SUCCESS_MESSAGE: 5000, // Success message auto-hide
+  TOAST_REMOVE: 5000, // Toast auto-remove
+} as const;
+
+// User Roles
+export const USER_ROLES = {
+  USER: "user",
+  ADMIN: "admin",
+} as const;
+
+// Filter Values
+export const FILTER_VALUES = {
+  ALL: "all",
+  TRUE: "true",
+  FALSE: "false",
+} as const;
+
+// Sort Order
+export const SORT_ORDER = {
+  ASC: "ASC",
+  DESC: "DESC",
+} as const;

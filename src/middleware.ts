@@ -44,9 +44,12 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect to home if accessing auth route with token
-  if (isAuthRoute && token) {
-    return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
-  }
+  // Lưu ý: Chỉ redirect nếu đang ở login/register, không redirect nếu user muốn logout
+  // Cho phép vào login page để user có thể xem lại hoặc logout nếu cần
+  // Client-side sẽ handle việc redirect nếu đã login
+  // if (isAuthRoute && token) {
+  //   return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
+  // }
 
   return NextResponse.next();
 }

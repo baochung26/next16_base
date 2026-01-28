@@ -32,7 +32,22 @@ export function getAccessToken(): string | null {
  */
 export function setAccessToken(token: string): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  try {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    // Verify đã lưu thành công
+    const saved = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!saved || saved !== token) {
+      console.error("Failed to save accessToken to localStorage");
+      throw new Error("Không thể lưu token vào localStorage");
+    }
+  } catch (error) {
+    console.error("Error saving accessToken to localStorage:", error);
+    if (error instanceof DOMException && error.code === 22) {
+      console.warn("localStorage is full or disabled. Token will not persist.");
+    } else {
+      throw error;
+    }
+  }
 }
 
 /**
@@ -98,7 +113,23 @@ export function hasToken(): boolean {
  */
 export function setUserInfo(user: any): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+  try {
+    localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+    // Verify đã lưu thành công
+    const saved = localStorage.getItem(USER_INFO_KEY);
+    if (!saved) {
+      console.error("Failed to save userInfo to localStorage");
+      throw new Error("Không thể lưu thông tin user vào localStorage");
+    }
+  } catch (error) {
+    console.error("Error saving userInfo to localStorage:", error);
+    // Nếu localStorage bị block (incognito, private mode), vẫn tiếp tục nhưng log warning
+    if (error instanceof DOMException && error.code === 22) {
+      console.warn("localStorage is full or disabled. User info will not persist.");
+    } else {
+      throw error;
+    }
+  }
 }
 
 /**
