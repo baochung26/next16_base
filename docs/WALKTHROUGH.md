@@ -337,68 +337,47 @@ Body: {
 
 ## Bước 4: Xử lý login và lưu token
 
-### API Route Handler
+### Service Call (Direct to Backend)
 
-**File:** `src/app/api/auth/login/route.ts` (Server-side)
+**File:** `src/services/auth.service.ts` (Client-side)
 
 ```typescript
-export async function POST(request: NextRequest) {
-  // ✅ 1. Parse request body
-  const body = await request.json();
-  const validatedData = loginSchema.parse(body);
-
-  // ✅ 2. Tìm user trong database
-  const user = getUserByEmailOrUsername(validatedData.identifier);
-  // File: src/lib/db/index.ts
-  // Đọc từ: src/lib/db/users.json
-
-  // ✅ 3. Verify password
-  const isValid = await verifyPassword(
-    validatedData.password,
-    user.password
+async login(credentials: LoginRequest): Promise<LoginResponse> {
+  // ✅ 1. Call backend API directly
+  const response = await apiClient.post<ApiResponse<LoginResponse>>(
+    "/auth/login",
+    credentials
   );
-  // File: src/lib/db/index.ts
-  // Sử dụng: bcryptjs.compare()
-
-  // ✅ 4. Generate tokens (fake JWT)
-  const accessToken = `fake-jwt-token-${user.id}|${randomUUID()}`;
-  const refreshToken = `fake-refresh-token-${randomUUID()}`;
-
-  // ✅ 5. Return response
-  return NextResponse.json({
-    data: {
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-      },
-      accessToken,
-      refreshToken,
-    },
-    message: "Đăng nhập thành công",
-    statusCode: 200,
-  });
+  
+  // ✅ 2. Handle response and store token
+  const data = this.handleResponse(response);
+  if (data.access_token) {
+    setAccessToken(data.access_token);
+  }
+  
+  return data;
 }
 ```
 
-**Database lookup:**
-- **File:** `src/lib/db/index.ts`
-- **Data file:** `src/lib/db/users.json`
-- **Function:** `getUserByEmailOrUsername()`
+**API Client Configuration:**
+- **Base URL:** `${NEXT_PUBLIC_API_URL}` (e.g., `http://localhost:3001/api/v1`)
+- **Full URL:** `${NEXT_PUBLIC_API_URL}/auth/login`
+- **Method:** POST
+- **Backend:** NestJS backend API (called directly from client)
 
-**Response:**
+**Response từ backend:**
 ```json
 {
   "data": {
     "user": {
       "id": "user-id-123",
       "email": "admin@example.com",
-      "username": "admin",
-      "name": "Admin User"
+      "firstName": "Admin",
+      "lastName": "User",
+      "role": "admin"
     },
-    "accessToken": "fake-jwt-token-user-id-123|uuid-here",
-    "refreshToken": "fake-refresh-token-uuid-here"
+    "access_token": "jwt-token-here",
+    "refresh_token": "refresh-token-here"
   },
   "message": "Đăng nhập thành công",
   "statusCode": 200
@@ -425,7 +404,7 @@ if (response.accessToken) {
     // localStorage.setItem("refreshToken", token)
   }
   
-  // ✅ 2. Lưu user info tạm thời (cho fake API)
+  // ✅ 2. Lưu user info (cache từ backend response)
   if (response.user) {
     setUserInfo(response.user);
     // localStorage.setItem("userInfo", JSON.stringify(user))
@@ -1002,41 +981,36 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const token = authHeader?.replace("Bearer ", "");
 
-  // ✅ 2. Extract user ID từ token (fake JWT)
-  // Format: "fake-jwt-token-{userId}|{random}"
-  let userId: string | null = null;
-  if (token.startsWith("fake-jwt-token-")) {
-    const parts = token.replace("fake-jwt-token-", "").split("|");
-    userId = parts[0]; // "user-id-123"
-  }
-
-  // ✅ 3. Get user từ database
-  const user = getUserById(userId);
-  // File: src/lib/db/index.ts
-  // Data: src/lib/db/users.json
-
-  // ✅ 4. Return user data
-  const { password, ...userWithoutPassword } = user;
-  return NextResponse.json({
-    data: userWithoutPassword,
-    message: "Success",
-    statusCode: 200,
+  // ✅ 2. Call backend API với token
+  const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+  const response = await fetch(`${BACKEND_API_URL}/users/profile`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
   });
+
+  const responseData = await response.json();
+
+  // ✅ 4. Return user data từ backend
+  return NextResponse.json(responseData, { status: response.status });
 }
 ```
 
 **Data flow:**
 1. Server Component gọi `requireServerAdmin()`
 2. `requireServerAdmin()` gọi `getServerUser()`
-3. `getServerUser()` fetch `/api/users/me` với token
-4. API route extract user ID từ token
-5. Query database để lấy user data
+3. `getServerUser()` đọc token từ cookies
+4. Gọi trực tiếp backend API `${BACKEND_API_URL}/users/profile` với token
+5. Backend validate token và return user data
 6. Return user object về Server Component
 
-**Database:**
-- **File:** `src/lib/db/index.ts`
-- **Data file:** `src/lib/db/users.json`
-- **Function:** `getUserById(userId)`
+**Backend API:**
+- **URL:** `${BACKEND_API_URL}/users/profile` (gọi trực tiếp từ server-side)
+- **Method:** GET
+- **Backend:** NestJS backend API
 
 ---
 
@@ -1263,30 +1237,24 @@ const user = await requireServerAdmin();
 // → Return user data
 ```
 
-#### 3. Database (File-based)
+#### 3. Backend API (NestJS)
 
-**File:** `src/lib/db/users.json`
-
-```json
-[
-  {
-    "id": "user-id-123",
-    "email": "admin@example.com",
-    "password": "$2a$10$...", // bcrypt hash
-    "name": "Admin User"
-  }
-]
-```
+**Backend API endpoints:**
+- `POST /auth/login` - Login
+- `POST /auth/register` - Register
+- `POST /auth/forgot-password` - Forgot password
+- `POST /auth/reset-password` - Reset password
+- `GET /users/profile` - Get current user
 
 **Khi nào dùng:**
-- Verify login credentials
-- Get user data từ user ID
+- Authentication (login, register)
+- Get user data từ JWT token
 - Update user information
 
 **Files sử dụng:**
-- `src/lib/db/index.ts` - Database functions
-- `src/app/api/auth/login/route.ts` - Login API
-- `src/app/api/users/me/route.ts` - Get user API
+- `src/app/api/auth/*/route.ts` - Next.js API routes (proxy)
+- `src/app/api/users/me/route.ts` - Get user API route (proxy)
+- `src/lib/api/server-auth.ts` - Server-side auth utilities
 
 ### State Management
 

@@ -34,7 +34,7 @@ Project này là **admin dashboard / SPA-like app**:
 
 ### 2. **Kiến trúc hiện tại**
 
-- **Fake API** (`NEXT_PUBLIC_USE_FAKE_API=true`): API routes trong Next.js, không phải external API
+- **API Routes** (Next.js): Proxy routes gọi backend API (NestJS)
 - **Token-based auth**: token trong localStorage + cookie
 - **Client Components** đã có sẵn logic: `useAuth`, `userService`, error handling, loading states
 

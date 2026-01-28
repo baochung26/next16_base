@@ -132,7 +132,6 @@ Tài liệu đầy đủ cho project development.
   - Best practices
   - Future improvements
 
-- **[MOCK_USERS.md](./MOCK_USERS.md)** - Mock user data
   - Test accounts
   - User roles
   - Password information

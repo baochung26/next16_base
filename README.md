@@ -49,17 +49,10 @@ Template Next.js 16 hoàn chỉnh với authentication, UI components đẹp m�
    ```env
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-secret-key-here
-   NEXT_PUBLIC_USE_FAKE_API=true
-   NEXT_PUBLIC_API_URL=http://localhost:3001/api
+   NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
    ```
 
-4. **Seed mock data (optional)**
-
-   ```bash
-   npm run seed
-   ```
-
-5. **Chạy development server**
+4. **Chạy development server**
 
    ```bash
    npm run dev
@@ -75,7 +68,6 @@ Template Next.js 16 hoàn chỉnh với authentication, UI components đẹp m�
 ```
 src/
 ├── app/                    # Next.js App Router pages
-│   ├── api/               # API routes
 │   ├── auth/              # Authentication pages
 │   ├── dashboard/        # Dashboard pages
 │   └── ...
@@ -85,7 +77,6 @@ src/
 │   └── ...
 ├── lib/                   # Utilities và helpers
 │   ├── api/              # API client và utilities
-│   ├── db/               # Database utilities (mock)
 │   └── ...
 ├── services/              # API service classes
 ├── hooks/                 # Custom React hooks

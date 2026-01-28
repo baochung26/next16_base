@@ -43,13 +43,7 @@ Hướng dẫn phát triển dự án từ project base này.
 
    Chỉnh sửa `.env` với các giá trị phù hợp.
 
-4. **Seed mock data (optional)**
-
-   ```bash
-   npm run seed
-   ```
-
-5. **Start development server**
+4. **Start development server**
 
    ```bash
    npm run dev
@@ -65,7 +59,6 @@ Hướng dẫn phát triển dự án từ project base này.
 ```
 src/
 ├── app/                    # Next.js App Router
-│   ├── api/               # API routes (fake API)
 │   ├── auth/              # Authentication pages
 │   ├── dashboard/         # Dashboard pages
 │   ├── profile/           # User profile

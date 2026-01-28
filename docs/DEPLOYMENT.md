@@ -40,8 +40,7 @@ Tạo file `.env.production` hoặc set trong platform:
 
 ```env
 # API Configuration
-NEXT_PUBLIC_API_URL=https://your-api-domain.com/api
-NEXT_PUBLIC_USE_FAKE_API=false
+NEXT_PUBLIC_API_URL=https://your-api-domain.com/api/v1
 
 # NextAuth (if using)
 NEXTAUTH_URL=https://your-domain.com

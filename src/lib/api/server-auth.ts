@@ -1,14 +1,12 @@
 import { cookies } from "next/headers";
-import { getUserById, type User } from "@/lib/db";
 import { isAdmin } from "@/lib/utils/auth";
-import type { User as ApiUser } from "@/types/api";
+import type { User } from "@/types/api";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
 
 /**
  * Get current user from token (server-side)
- * This works with fake API tokens and real JWT tokens
- * For real JWT, it calls backend API to get user info
+ * Calls backend API to get user info from JWT token
  */
 export async function getServerUser(): Promise<User | null> {
   try {
@@ -18,18 +16,6 @@ export async function getServerUser(): Promise<User | null> {
 
     if (!token) {
       return null;
-    }
-
-    // For fake API: Extract user ID from token
-    // Format: fake-jwt-token-{userId}|{random}
-    if (token.startsWith("fake-jwt-token-")) {
-      const tokenWithoutPrefix = token.replace("fake-jwt-token-", "");
-      const parts = tokenWithoutPrefix.split("|");
-      if (parts.length >= 1 && parts[0]) {
-        const userId = parts[0];
-        const user = getUserById(userId);
-        return user || null;
-      }
     }
 
     // GET /users/profile - response: { success, statusCode, message, data }

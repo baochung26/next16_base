@@ -18,19 +18,10 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
-// Determine base URL - use local API if NEXT_PUBLIC_USE_FAKE_API is true
+// Determine base URL - call backend API directly
 const getBaseURL = () => {
-  // If using fake API (local Next.js API routes)
-  if (
-    process.env.NEXT_PUBLIC_USE_FAKE_API === "true" ||
-    !process.env.NEXT_PUBLIC_API_URL
-  ) {
-    return typeof window !== "undefined"
-      ? "/api" // Client-side: use relative path
-      : "http://localhost:3000/api"; // Server-side: use full URL
-  }
-  // Use real backend API
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+  return backendUrl;
 };
 
 // Create axios instance

@@ -2,7 +2,7 @@
 
 ## Tổng quan
 
-Project sử dụng cấu trúc API client tập trung với Axios, hỗ trợ cả fake API (local Next.js routes) và real API (NestJS backend). Tất cả API calls được quản lý thông qua các service classes.
+Project sử dụng cấu trúc API client tập trung với Axios, gọi trực tiếp backend API (NestJS). Tất cả API calls được quản lý thông qua các service classes.
 
 ## Cấu trúc
 
@@ -30,12 +30,8 @@ src/
 Trong file `.env`:
 
 ```env
-# Sử dụng fake API (local Next.js routes)
-NEXT_PUBLIC_USE_FAKE_API=true
-
-# Hoặc sử dụng real backend
-NEXT_PUBLIC_USE_FAKE_API=false
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+# Backend API URL (NestJS backend)
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
 
 ### API Client
@@ -44,7 +40,7 @@ API client tự động:
 
 - Thêm `Authorization: Bearer {token}` header vào mọi request
 - Xử lý lỗi và redirect khi 401
-- Hỗ trợ cả fake API và real API
+- Gọi trực tiếp backend API (NestJS) từ client-side và server-side
 
 ## Sử dụng Services
 
@@ -315,17 +311,19 @@ setRefreshToken("refresh-token-here");
 clearTokens();
 ```
 
-### Lưu User Info (Fake API only)
+### Lưu User Info (Cache)
 
 ```typescript
 import { setUserInfo, getUserInfo } from "@/lib/api/token";
 
-// Lưu user info (chỉ cho fake API)
+// Lưu user info (cache từ backend API)
 setUserInfo({ id: "123", email: "user@example.com" });
 
-// Đọc user info
+// Đọc user info từ cache
 const userInfo = getUserInfo();
 ```
+
+**Lưu ý:** `setUserInfo` và `getUserInfo` chỉ dùng để cache user info từ backend API response, không phải database.
 
 ## Server-Side Usage
 
@@ -494,10 +492,6 @@ Tất cả API responses theo format NestJS:
   statusCode: number    // HTTP status code
 }
 ```
-
-## Migration từ Fake API sang Real Backend
-
-Xem chi tiết trong [API_MIGRATION.md](./API_MIGRATION.md)
 
 ## Troubleshooting
 

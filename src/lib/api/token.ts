@@ -93,8 +93,8 @@ export function hasToken(): boolean {
 }
 
 /**
- * Store user info temporarily (for fake API)
- * In real backend, user info will come from JWT token
+ * Store user info temporarily (cache)
+ * User info comes from backend API /users/me
  */
 export function setUserInfo(user: any): void {
   if (typeof window === "undefined") return;
@@ -102,7 +102,7 @@ export function setUserInfo(user: any): void {
 }
 
 /**
- * Get user info from localStorage
+ * Get user info from localStorage (cache)
  */
 export function getUserInfo(): any | null {
   if (typeof window === "undefined") return null;
