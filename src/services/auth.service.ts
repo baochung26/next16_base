@@ -9,6 +9,7 @@ import type {
   ForgotPasswordResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  RefreshTokenResponse,
 } from "@/types/api";
 
 /**
@@ -45,16 +46,24 @@ class AuthService extends BaseService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      const response = await apiClient.post<ApiResponse<LoginResponse>>(
+      // Backend trả về trực tiếp LoginResponse (không có wrapper ApiResponse)
+      const response = await apiClient.post<LoginResponse>(
         "/auth/login",
         credentials
       );
-      const data = this.handleResponse(response);
+      
+      // Backend trả về trực tiếp object, không có wrapper
+      const data = response.data as LoginResponse;
 
-      // Store access token if provided (backend uses access_token, not accessToken)
+      // Store tokens if provided
       if (data.access_token) {
-        const { setAccessToken } = await import("@/lib/api/token");
+        const { setAccessToken, setRefreshToken } = await import("@/lib/api/token");
         setAccessToken(data.access_token);
+        
+        // Lưu refresh token nếu có
+        if (data.refresh_token) {
+          setRefreshToken(data.refresh_token);
+        }
       }
 
       return data;
@@ -130,16 +139,37 @@ class AuthService extends BaseService {
   /**
    * Refresh access token
    *
-   * @param refreshToken - Refresh token
-   * @returns New access token
+   * @param refreshToken - Refresh token (format: "user-id:token-id")
+   * @returns New access token and refresh token (token rotation)
    * @throws {ApiError} If refresh fails
    */
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
-    return this.safeCall(() =>
-      apiClient.post<ApiResponse<{ accessToken: string }>>("/auth/refresh", {
-        refreshToken,
-      })
-    );
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    try {
+      // Backend trả về trực tiếp RefreshTokenResponse (không có wrapper)
+      const response = await apiClient.post<RefreshTokenResponse>(
+        "/auth/refresh",
+        { refreshToken }
+      );
+      
+      // Backend trả về trực tiếp object
+      const data = response.data as RefreshTokenResponse;
+      
+      // Lưu tokens mới (token rotation)
+      if (data.access_token) {
+        const { setAccessToken, setRefreshToken } = await import("@/lib/api/token");
+        setAccessToken(data.access_token);
+        
+        // Lưu refresh token mới (token cũ đã bị revoke)
+        if (data.refresh_token) {
+          setRefreshToken(data.refresh_token);
+        }
+      }
+      
+      return data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
   }
 
   /**

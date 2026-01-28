@@ -68,15 +68,22 @@ export default function LoginPage() {
         password: values.password,
       });
 
-      // Store token and user info
+      // Store tokens and user info
       if (response.access_token) {
         const {
           setAccessToken,
+          setRefreshToken,
           setUserInfo,
           setAccessTokenCookie,
         } = await import("@/lib/api/token");
+        
         setAccessToken(response.access_token);
         setAccessTokenCookie(response.access_token);
+        
+        // Lưu refresh token nếu có
+        if (response.refresh_token) {
+          setRefreshToken(response.refresh_token);
+        }
 
         // Store user info
         const userInfo = {

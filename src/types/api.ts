@@ -5,8 +5,8 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-    id: string;
-    email: string;
+  id: string;
+  email: string;
   firstName: string;
   lastName: string;
   role: string;
@@ -14,6 +14,12 @@ export interface LoginResponse {
   createdAt: string;
   updatedAt: string;
   access_token: string;
+  refresh_token: string;
+}
+
+export interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface RegisterRequest {
