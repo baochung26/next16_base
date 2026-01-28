@@ -70,16 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           createdAt: cachedUser.createdAt || new Date().toISOString(),
           updatedAt: cachedUser.updatedAt || new Date().toISOString(),
         };
-        
-        // Debug: log cached user info
-        if (process.env.NODE_ENV === "development") {
-          console.log("Loading user from cache:", {
-            cachedUser,
-            mappedUser: userData,
-            role: userData.role,
-          });
-        }
-        
+
         setUser(userData);
         setLoading(false);
         

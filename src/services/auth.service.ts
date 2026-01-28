@@ -47,21 +47,38 @@ class AuthService extends BaseService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      // Backend trả về trực tiếp LoginResponse (không có wrapper ApiResponse)
-      const response = await apiClient.post<LoginResponse>(
+      const response = await apiClient.post<ApiResponse<LoginResponse>>(
         API_ENDPOINTS.AUTH.LOGIN,
         credentials
       );
-      
-      // Backend trả về trực tiếp object, không có wrapper
-      const data = response.data as LoginResponse;
+
+      const responseData = response.data;
+      let data: LoginResponse;
+
+      // Parse response: { success, statusCode, message, data: LoginResponse } hoặc trực tiếp LoginResponse
+      if (
+        responseData &&
+        typeof responseData === "object" &&
+        "success" in responseData &&
+        "data" in responseData
+      ) {
+        const apiResponse = responseData as ApiResponse<LoginResponse>;
+        if (apiResponse.data) {
+          data = apiResponse.data;
+        } else {
+          throw new Error(apiResponse.message || "No data in response");
+        }
+      } else {
+        data = responseData as LoginResponse;
+      }
 
       // Store tokens if provided
       if (data.access_token) {
-        const { setAccessToken, setRefreshToken } = await import("@/lib/api/token");
+        const { setAccessToken, setRefreshToken } = await import(
+          "@/lib/api/token"
+        );
         setAccessToken(data.access_token);
-        
-        // Lưu refresh token nếu có
+
         if (data.refresh_token) {
           setRefreshToken(data.refresh_token);
         }

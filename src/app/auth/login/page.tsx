@@ -61,14 +61,12 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // Call backend API
       const { authService } = await import("@/services");
       const response = await authService.login({
         email: values.email,
         password: values.password,
       });
 
-      // Store tokens and user info
       if (response.access_token) {
         const {
           setAccessToken,
@@ -76,16 +74,7 @@ export default function LoginPage() {
           setUserInfo,
           setAccessTokenCookie,
         } = await import("@/lib/api/token");
-        
-        setAccessToken(response.access_token);
-        setAccessTokenCookie(response.access_token);
-        
-        // Lưu refresh token nếu có
-        if (response.refresh_token) {
-          setRefreshToken(response.refresh_token);
-        }
 
-        // Store user info
         const userInfo = {
           id: response.id,
           email: response.email,
@@ -96,28 +85,18 @@ export default function LoginPage() {
           createdAt: response.createdAt,
           updatedAt: response.updatedAt,
         };
-        
-        // Debug: log user info to verify role is saved
-        if (process.env.NODE_ENV === "development") {
-          console.log("Login successful, saving user info:", {
-            userInfo,
-            role: response.role,
-            isAdmin: response.role === "admin",
-          });
-        }
-        
-        setUserInfo(userInfo);
 
-        // Set user directly in context
-        setUser({
-          ...userInfo,
-        });
+        setAccessToken(response.access_token);
+        setAccessTokenCookie(response.access_token);
+
+        if (response.refresh_token) {
+          setRefreshToken(response.refresh_token);
+        }
+
+        setUserInfo(userInfo);
+        setUser(userInfo);
       }
 
-      // User đã được set trực tiếp vào context ở trên, không cần refetch
-      // vì thông tin user đã có trong login response
-
-      // Redirect to home
       router.push("/");
       router.refresh();
     } catch (err) {
