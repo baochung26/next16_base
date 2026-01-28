@@ -15,11 +15,21 @@ export const API_ENDPOINTS = {
     VERIFY_EMAIL: "/auth/verify-email",
   },
   USERS: {
-    ME: "/users/me",
-    BY_ID: (id: string) => `/users/${id}`,
-    UPDATE_PROFILE: "/users/me",
+    PROFILE: "/users/profile", // GET current user profile
+    BY_ID: (id: string) => `/users/${id}`, // GET user by ID
+    UPDATE_PROFILE: "/users/profile", // PATCH update profile
     CHANGE_PASSWORD: "/users/change-password",
     UPLOAD_AVATAR: "/users/avatar",
+  },
+  ADMIN: {
+    USERS: {
+      LIST: "/admin/users",
+      BY_ID: (id: string) => `/admin/users/${id}`,
+      UPDATE: (id: string) => `/admin/users/${id}`, // PATCH
+      ACTIVATE: (id: string) => `/admin/users/${id}/activate`,
+      DEACTIVATE: (id: string) => `/admin/users/${id}/deactivate`,
+      SEARCH: "/admin/users/search",
+    },
   },
 } as const;
 

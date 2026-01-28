@@ -1,5 +1,6 @@
 import apiClient, { ApiResponse } from "@/lib/api/client";
 import { BaseService } from "@/lib/api/base.service";
+import { API_ENDPOINTS } from "@/lib/constants";
 import type {
   LoginRequest,
   LoginResponse,
@@ -48,7 +49,7 @@ class AuthService extends BaseService {
     try {
       // Backend trả về trực tiếp LoginResponse (không có wrapper ApiResponse)
       const response = await apiClient.post<LoginResponse>(
-        "/auth/login",
+        API_ENDPOINTS.AUTH.LOGIN,
         credentials
       );
       
@@ -82,7 +83,7 @@ class AuthService extends BaseService {
    */
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     return this.safeCall(() =>
-      apiClient.post<ApiResponse<RegisterResponse>>("/auth/register", data)
+      apiClient.post<ApiResponse<RegisterResponse>>(API_ENDPOINTS.AUTH.REGISTER, data)
     );
   }
 
@@ -98,7 +99,7 @@ class AuthService extends BaseService {
   ): Promise<ForgotPasswordResponse> {
     return this.safeCall(() =>
       apiClient.post<ApiResponse<ForgotPasswordResponse>>(
-        "/auth/forgot-password",
+        API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
         data
       )
     );
@@ -116,7 +117,7 @@ class AuthService extends BaseService {
   ): Promise<ResetPasswordResponse> {
     return this.safeCall(() =>
       apiClient.post<ApiResponse<ResetPasswordResponse>>(
-        "/auth/reset-password",
+        API_ENDPOINTS.AUTH.RESET_PASSWORD,
         data
       )
     );
@@ -129,7 +130,7 @@ class AuthService extends BaseService {
    */
   async logout(): Promise<void> {
     try {
-      await apiClient.post("/auth/logout");
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
     } catch (error) {
       this.handleError(error);
       throw error;
@@ -147,7 +148,7 @@ class AuthService extends BaseService {
     try {
       // Backend trả về trực tiếp RefreshTokenResponse (không có wrapper)
       const response = await apiClient.post<RefreshTokenResponse>(
-        "/auth/refresh",
+        API_ENDPOINTS.AUTH.REFRESH,
         { refreshToken }
       );
       
@@ -181,7 +182,7 @@ class AuthService extends BaseService {
    */
   async verifyEmail(token: string): Promise<{ message: string }> {
     return this.safeCall(() =>
-      apiClient.post<ApiResponse<{ message: string }>>("/auth/verify-email", {
+      apiClient.post<ApiResponse<{ message: string }>>(API_ENDPOINTS.AUTH.VERIFY_EMAIL, {
         token,
       })
     );

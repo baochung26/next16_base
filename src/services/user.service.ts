@@ -1,5 +1,6 @@
 import apiClient, { ApiResponse } from "@/lib/api/client";
 import { BaseService } from "@/lib/api/base.service";
+import { API_ENDPOINTS } from "@/lib/constants";
 import type { User } from "@/types/api";
 
 /**
@@ -23,7 +24,7 @@ class UserService extends BaseService {
    */
   async getCurrentUser(): Promise<User> {
     return this.safeCall(() =>
-      apiClient.get<ApiResponse<User>>("/users/profile")
+      apiClient.get<ApiResponse<User>>(API_ENDPOINTS.USERS.PROFILE)
     );
   }
 
@@ -36,7 +37,7 @@ class UserService extends BaseService {
    */
   async getUserById(id: string): Promise<User> {
     return this.safeCall(() =>
-      apiClient.get<ApiResponse<User>>(`/users/${id}`)
+      apiClient.get<ApiResponse<User>>(API_ENDPOINTS.USERS.BY_ID(id))
     );
   }
 
@@ -54,7 +55,7 @@ class UserService extends BaseService {
     password?: string;
   }): Promise<User> {
     return this.safeCall(() =>
-      apiClient.patch<ApiResponse<User>>("/users/profile", data)
+      apiClient.patch<ApiResponse<User>>(API_ENDPOINTS.USERS.UPDATE_PROFILE, data)
     );
   }
 
@@ -71,7 +72,7 @@ class UserService extends BaseService {
   }): Promise<{ message: string }> {
     return this.safeCall(() =>
       apiClient.post<ApiResponse<{ message: string }>>(
-        "/users/change-password",
+        API_ENDPOINTS.USERS.CHANGE_PASSWORD,
         data
       )
     );
@@ -90,7 +91,7 @@ class UserService extends BaseService {
 
     return this.safeCall(() =>
       apiClient.post<ApiResponse<{ imageUrl: string }>>(
-        "/users/avatar",
+        API_ENDPOINTS.USERS.UPLOAD_AVATAR,
         formData,
         {
           headers: {
@@ -109,7 +110,7 @@ class UserService extends BaseService {
    */
   async getAllUsers(): Promise<User[]> {
     return this.safeCall(() =>
-      apiClient.get<ApiResponse<User[]>>("/admin/users")
+      apiClient.get<ApiResponse<User[]>>(API_ENDPOINTS.ADMIN.USERS.LIST)
     );
   }
 
@@ -123,7 +124,7 @@ class UserService extends BaseService {
   async deleteUser(id: string): Promise<{ message: string }> {
     try {
       const response = await apiClient.delete<ApiResponse<{ message: string }>>(
-        `/admin/users/${id}`
+        API_ENDPOINTS.ADMIN.USERS.BY_ID(id)
       );
       
       // Handle response - delete API returns { success, statusCode, message }
@@ -157,7 +158,7 @@ class UserService extends BaseService {
   async activateUser(id: string): Promise<{ id: string; isActive: boolean }> {
     return this.safeCall(() =>
       apiClient.patch<ApiResponse<{ id: string; isActive: boolean }>>(
-        `/admin/users/${id}/activate`
+        API_ENDPOINTS.ADMIN.USERS.ACTIVATE(id)
       )
     );
   }
@@ -172,7 +173,7 @@ class UserService extends BaseService {
   async deactivateUser(id: string): Promise<{ id: string; isActive: boolean }> {
     return this.safeCall(() =>
       apiClient.patch<ApiResponse<{ id: string; isActive: boolean }>>(
-        `/admin/users/${id}/deactivate`
+        API_ENDPOINTS.ADMIN.USERS.DEACTIVATE(id)
       )
     );
   }
@@ -197,7 +198,7 @@ class UserService extends BaseService {
     }
   ): Promise<User> {
     return this.safeCall(() =>
-      apiClient.patch<ApiResponse<User>>(`/admin/users/${id}`, data)
+      apiClient.patch<ApiResponse<User>>(API_ENDPOINTS.ADMIN.USERS.UPDATE(id), data)
     );
   }
 
@@ -237,7 +238,7 @@ class UserService extends BaseService {
       if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
 
       const queryString = queryParams.toString();
-      const url = `/admin/users/search${queryString ? `?${queryString}` : ""}`;
+      const url = `${API_ENDPOINTS.ADMIN.USERS.SEARCH}${queryString ? `?${queryString}` : ""}`;
 
       const response = await apiClient.get<ApiResponse<User[]> & {
         meta?: {
