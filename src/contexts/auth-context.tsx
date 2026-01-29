@@ -41,12 +41,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Track if /users/me endpoint is available
-  // Once we know it's not available (404/500), we won't call it again
-  const [endpointAvailable, setEndpointAvailable] = useState<boolean | null>(null);
 
-  const refetch = useCallback(async (forceRefresh = false) => {
+  const refetch = useCallback(async () => {
     try {
       const token = getAccessToken();
       if (!token) {
@@ -56,95 +52,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // First, try to get user from localStorage (cached from login)
-      // This avoids unnecessary API calls when endpoint doesn't exist
+      // This provides instant UI update while API call is in progress
       const cachedUser = getUserInfo();
-      if (cachedUser && !forceRefresh) {
-        // Map cached user to User type
+      if (cachedUser) {
+        // Map cached user to User type for immediate UI update
         const userData: User = {
           id: cachedUser.id,
           email: cachedUser.email,
           firstName: cachedUser.firstName || "",
           lastName: cachedUser.lastName || "",
-          role: cachedUser.role || "user", // Ensure role is preserved
+          role: cachedUser.role || "user",
           isActive: cachedUser.isActive !== undefined ? cachedUser.isActive : true,
           createdAt: cachedUser.createdAt || new Date().toISOString(),
           updatedAt: cachedUser.updatedAt || new Date().toISOString(),
         };
-
         setUser(userData);
-        setLoading(false);
-        
-        // Don't call API if we have cached user and endpoint is known to be unavailable
-        // or if we haven't checked yet (will check on next page load if needed)
-        if (endpointAvailable === false) {
-          return;
-        }
-        
-        // If endpoint availability is unknown, don't call it to avoid errors
-        // User info from login response is sufficient
-        return;
+        // Don't set loading to false yet - we'll update from API
       }
 
-      // Only try API if:
-      // 1. We don't have cached user, OR
-      // 2. We're forcing a refresh AND endpoint is known to be available
-      if (endpointAvailable === false) {
-        // Endpoint is known to be unavailable, use cached user or set to null
-        if (cachedUser) {
-          const userData: User = {
-            id: cachedUser.id,
-            email: cachedUser.email,
-            firstName: cachedUser.firstName || "",
-            lastName: cachedUser.lastName || "",
-            role: cachedUser.role || "user",
-            isActive: cachedUser.isActive !== undefined ? cachedUser.isActive : true,
-            createdAt: cachedUser.createdAt || new Date().toISOString(),
-            updatedAt: cachedUser.updatedAt || new Date().toISOString(),
-          };
-          setUser(userData);
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Try to get from API only if endpoint might be available
+      // Always try to get fresh data from API
       try {
         const userData = await userService.getCurrentUser();
         setUser(userData);
-        setUserInfo(userData); // đồng bộ cache để refresh/đóng mở tab vẫn đúng
-        setEndpointAvailable(true); // Mark endpoint as available
+        setUserInfo(userData); // Sync cache để refresh/đóng mở tab vẫn đúng
       } catch (apiError: unknown) {
         const error = apiError as { statusCode?: number };
         
-        // If API call fails (404/500), endpoint doesn't exist yet
-        if (error?.statusCode === 404 || error?.statusCode === 500) {
-          setEndpointAvailable(false); // Mark endpoint as unavailable
-          console.warn("Backend endpoint /users/me not available, using cached user info");
-          
-          // Use cached user if available
-          if (cachedUser) {
-            const userData: User = {
-              id: cachedUser.id,
-              email: cachedUser.email,
-              firstName: cachedUser.firstName || "",
-              lastName: cachedUser.lastName || "",
-              role: cachedUser.role || "user",
-              isActive: cachedUser.isActive !== undefined ? cachedUser.isActive : true,
-              createdAt: cachedUser.createdAt || new Date().toISOString(),
-              updatedAt: cachedUser.updatedAt || new Date().toISOString(),
-            };
-            setUser(userData);
-          } else {
-            // No cached user and API fails - user not authenticated
-            setUser(null);
-          }
-          setLoading(false);
-          return;
-        }
-        
-        // If it's a 401, clear the token and user
+        // If it's a 401, refresh token đã được xử lý trong axios interceptor
+        // Nếu vẫn nhận 401 ở đây nghĩa là refresh token cũng hết hạn hoặc không có
+        // → Clear tokens và logout
         if (error?.statusCode === 401) {
           try {
             const { clearTokens } = await import("@/lib/api/token");
@@ -157,17 +93,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         
-        // For other errors, log but don't throw - just set user to null
+        // For other errors, log but keep cached user if available
         console.error("Error fetching user from API:", apiError);
-        setUser(null);
+        // Nếu có cached user, giữ lại để UI vẫn hoạt động
+        // Nếu không có cache, set user = null
+        if (!cachedUser) {
+          setUser(null);
+        }
       }
     } catch (error) {
       console.error("Error fetching user:", error);
-      setUser(null);
+      // Nếu có cached user, giữ lại để UI vẫn hoạt động
+      const cachedUser = getUserInfo();
+      if (!cachedUser) {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
-  }, [endpointAvailable]);
+  }, []);
 
   useEffect(() => {
     refetch();
