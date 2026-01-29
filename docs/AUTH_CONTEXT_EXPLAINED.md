@@ -16,9 +16,8 @@ Tài liệu này giải thích từng phần trong file `src/contexts/auth-conte
    - [6.2. Hàm refetch - Logic đơn giản và hiệu quả](#62-hàm-refetch---logic-đơn-giản-và-hiệu-quả)
    - [6.3. Cơ chế Cache](#63-cơ-chế-cache)
    - [6.4. Xử lý lỗi chi tiết](#64-xử-lý-lỗi-chi-tiết)
-   - [6.5. Refresh Token - Tại sao không có trong auth-context?](#65-refresh-token---tại-sao-không-có-trong-auth-context)
-   - [6.6. useEffect và useCallback](#66-useeffect-và-usecallback)
-   - [6.7. Context Value và Provider](#67-context-value-và-provider)
+   - [6.5. useEffect và useCallback](#65-useeffect-và-usecallback)
+   - [6.6. Context Value và Provider](#66-context-value-và-provider)
 7. [useAuth – Custom Hook sử dụng Context](#7-useauth--custom-hook-sử-dụng-context)
 8. [Luồng hoạt động tổng thể](#8-luồng-hoạt-động-tổng-thể)
 9. [Các kịch bản sử dụng thực tế](#9-các-kịch-bản-sử-dụng-thực-tế)
@@ -48,9 +47,9 @@ Tài liệu này giải thích từng phần trong file `src/contexts/auth-conte
 ### Đặc điểm nổi bật của implementation này:
 
 1. **Cache thông minh**: Sử dụng `localStorage` để cache thông tin user, cung cấp instant UI update
-2. **Error handling chi tiết**: Xử lý riêng mã lỗi 401 (unauthorized) sau khi refresh token đã thất bại
+2. **Error handling chi tiết**: Xử lý riêng mã lỗi 401 (unauthorized) và các lỗi khác
 3. **Đồng bộ cache**: Tự động đồng bộ cache khi có dữ liệu mới từ API
-4. **Tách biệt trách nhiệm**: Refresh token được xử lý ở axios interceptor, không phải trong context
+4. **Đơn giản và rõ ràng**: Code tập trung vào quản lý state, không có logic phức tạp không cần thiết
 
 ---
 
@@ -318,19 +317,8 @@ try {
 }
 ```
 
-**Lưu ý quan trọng về Refresh Token:**
-- Khi API call trả về 401, **axios interceptor** (trong `src/lib/api/client.ts`) sẽ tự động:
-  1. Gọi refresh token API
-  2. Lưu access token mới
-  3. Retry request ban đầu
-  4. Nếu refresh thành công → request ban đầu sẽ thành công và không có lỗi ở đây
-- Nếu vẫn nhận 401 ở đây nghĩa là:
-  - Refresh token cũng đã hết hạn, HOẶC
-  - Không có refresh token
-  - → Cần clear tokens và logout
-
 **Bước 4: Xử lý lỗi**
-- **401**: Clear tokens và set `user = null` (refresh token đã thất bại)
+- **401**: Clear tokens và set `user = null` (token không hợp lệ hoặc đã hết hạn)
 - **Các lỗi khác**: Giữ lại cached user nếu có, chỉ set `null` nếu không có cache
 
 ---
@@ -369,8 +357,7 @@ try {
 catch (apiError: unknown) {
   const error = apiError as { statusCode?: number };
   
-  // If it's a 401, refresh token đã được xử lý trong axios interceptor
-  // Nếu vẫn nhận 401 ở đây nghĩa là refresh token cũng hết hạn hoặc không có
+  // If it's a 401, token không hợp lệ hoặc đã hết hạn
   // → Clear tokens và logout
   if (error?.statusCode === 401) {
     try {
@@ -395,9 +382,7 @@ catch (apiError: unknown) {
 #### Các kịch bản xử lý lỗi:
 
 **1. Lỗi 401 (Unauthorized)**
-- **Điều quan trọng**: Lỗi 401 ở đây nghĩa là refresh token đã được thử nhưng thất bại
-- Axios interceptor đã tự động thử refresh token trước đó
-- Nếu vẫn 401 → refresh token cũng hết hạn hoặc không có
+- Token không hợp lệ hoặc đã hết hạn
 - **Hành động**: Clear tokens, set `user = null`, user cần đăng nhập lại
 
 **2. Các lỗi khác (network, 500, etc.)**
@@ -417,133 +402,7 @@ const { clearTokens } = await import("@/lib/api/token");
 
 ---
 
-### 6.5. Refresh Token - Tại sao không có trong auth-context?
-
-#### Câu hỏi thường gặp:
-
-> **Tại sao không thấy logic refresh token trong `auth-context.tsx`?**
-
-#### Câu trả lời:
-
-**Refresh token được xử lý tự động ở axios interceptor**, không phải trong auth context. Đây là một thiết kế tốt vì:
-
-1. **Separation of Concerns**: 
-   - Auth context chỉ quản lý **state** của user (user data, loading state)
-   - Axios interceptor quản lý **HTTP requests** và token refresh
-
-2. **Tự động và transparent**:
-   - Khi bất kỳ API call nào trả về 401, interceptor tự động:
-     - Gọi refresh token API
-     - Lưu token mới
-     - Retry request ban đầu
-   - User và component không cần biết gì về refresh token
-
-3. **Tránh duplicate logic**:
-   - Nếu đặt refresh token trong context, mỗi component cần tự xử lý
-   - Với interceptor, tất cả API calls tự động được xử lý
-
-#### Luồng hoạt động của Refresh Token:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  1. Component gọi API (ví dụ: userService.getCurrentUser)│
-│     └─► Axios request với access token                  │
-│                                                         │
-│  2. Server trả về 401 (access token hết hạn)          │
-│     └─► Axios response interceptor bắt lỗi             │
-│                                                         │
-│  3. Interceptor tự động:                                │
-│     ├─► Kiểm tra có refresh token không?                │
-│     ├─► Gọi /auth/refresh với refresh token            │
-│     ├─► Nhận access token mới                          │
-│     ├─► Lưu tokens mới vào localStorage                │
-│     └─► Retry request ban đầu với token mới            │
-│                                                         │
-│  4. Request thành công → Component nhận data           │
-│     └─► Component không biết token đã được refresh      │
-│                                                         │
-│  5. Nếu refresh token cũng hết hạn:                    │
-│     └─► Clear tokens → Redirect về /auth/login         │
-│         └─► Auth context nhận 401 → setUser(null)      │
-└─────────────────────────────────────────────────────────┘
-```
-
-#### Code của Axios Interceptor (tham khảo):
-
-File: `src/lib/api/client.ts`
-
-```typescript
-// Response interceptor - Handle errors và auto-refresh token
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError<ApiError>) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-    };
-
-    // Handle 401 Unauthorized - Try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      const refreshTokenValue = getRefreshToken();
-
-      if (!refreshTokenValue) {
-        // Không có refresh token → logout
-        clearTokens();
-        window.location.href = "/auth/login";
-        return Promise.reject(error);
-      }
-
-      try {
-        // Gọi refresh token API
-        const refreshResponse = await authService.refreshToken(refreshTokenValue);
-        const newAccessToken = refreshResponse.access_token;
-
-        // Lưu tokens mới
-        setAccessToken(newAccessToken);
-        setAccessTokenCookie(newAccessToken);
-
-        // Update header và retry request ban đầu
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        }
-
-        return apiClient(originalRequest); // Retry với token mới
-      } catch (refreshError) {
-        // Refresh token cũng hết hạn → logout
-        clearTokens();
-        window.location.href = "/auth/login";
-        return Promise.reject(refreshError);
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-```
-
-#### Tại sao Auth Context vẫn cần xử lý 401?
-
-Mặc dù refresh token được xử lý ở interceptor, auth context vẫn cần xử lý 401 vì:
-
-1. **Trường hợp refresh token không có hoặc đã hết hạn**:
-   - Interceptor sẽ clear tokens và redirect
-   - Nhưng context cũng cần set `user = null` để UI cập nhật
-
-2. **Trường hợp có lỗi khác**:
-   - Network error, timeout, etc.
-   - Context cần xử lý để không crash app
-
-3. **Defensive programming**:
-   - Đảm bảo state luôn consistent với thực tế
-
-#### Kết luận:
-
-✅ **Refresh token được xử lý ở axios interceptor** - tự động, transparent  
-✅ **Auth context chỉ quản lý user state** - đơn giản, rõ ràng  
-✅ **Separation of concerns** - mỗi phần làm đúng việc của mình  
-
----
-
-### 6.6. useEffect và useCallback
+### 6.5. useEffect và useCallback
 
 ```tsx
 useEffect(() => {
@@ -581,7 +440,7 @@ const refetch = useCallback(async () => {
 
 ---
 
-### 6.7. Context Value và Provider
+### 6.6. Context Value và Provider
 
 ```tsx
 const value: AuthContextType = {
@@ -665,9 +524,7 @@ export function useAuth() {
    └─► Gọi API: userService.getCurrentUser()
          ├─► Thành công → setUser(userData), setUserInfo(userData) sync cache
          └─► Lỗi:
-               ├─► 401 → Axios interceptor tự động refresh token
-               │     ├─► Refresh thành công → Retry request → Thành công
-               │     └─► Refresh thất bại → clearTokens(), setUser(null), redirect login
+               ├─► 401 → clearTokens(), setUser(null)
                └─► Khác → Log error, giữ cache nếu có
          └─► finally: setLoading(false)
 
@@ -677,12 +534,6 @@ export function useAuth() {
 4. Ở bất kỳ component con nào:
    └─► const { user, loading, isAuthenticated, refetch, setUser } = useAuth();
    └─► Dùng để: hiển thị tên user, ẩn nút Login khi đã đăng nhập, redirect, v.v.
-
-5. Khi access token hết hạn trong session:
-   └─► API call trả về 401
-   └─► Axios interceptor tự động refresh token
-   └─► Retry request → Thành công
-   └─► User không bị logout, không nhận thấy gì
 ```
 
 ---
@@ -829,11 +680,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 ### Điểm mạnh của implementation này:
 
 1. **Cache Strategy**: Sử dụng `localStorage` để cache user info, cung cấp instant UI update
-2. **Separation of Concerns**: Refresh token được xử lý ở axios interceptor, context chỉ quản lý state
-3. **Error Handling**: Xử lý riêng từng loại lỗi (401 sau refresh thất bại, các lỗi khác)
-4. **Performance**: Dùng `useCallback` để tối ưu re-render
-5. **Type Safety**: TypeScript đảm bảo type safety
-6. **Simple & Clean**: Code đơn giản, dễ hiểu, không có logic phức tạp không cần thiết
+2. **Error Handling**: Xử lý riêng từng loại lỗi (401, network errors, etc.)
+3. **Performance**: Dùng `useCallback` để tối ưu re-render
+4. **Type Safety**: TypeScript đảm bảo type safety
+5. **Simple & Clean**: Code đơn giản, dễ hiểu, không có logic phức tạp không cần thiết
 
 ### Có thể cải thiện:
 
@@ -844,7 +694,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
 ### Best Practices đã áp dụng:
 
-✅ **Separation of Concerns**: Logic auth tách riêng vào context, refresh token ở interceptor  
+✅ **Separation of Concerns**: Logic auth tách riêng vào context, tập trung vào quản lý state  
 ✅ **Error Boundaries**: Xử lý lỗi một cách graceful, không crash app  
 ✅ **Type Safety**: Dùng TypeScript để đảm bảo type safety  
 ✅ **Performance**: Dùng `useCallback` để tối ưu  
@@ -864,7 +714,6 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 | `refetch` | Logic đơn giản: kiểm tra token → load cache → gọi API → xử lý lỗi. |
 | `useCallback` | Tối ưu `refetch`, chỉ tạo một lần khi component mount. |
 | Cache mechanism | Dùng `localStorage` để cache user info, đồng bộ khi có dữ liệu mới từ API. |
-| Refresh Token | Được xử lý tự động ở axios interceptor, không phải trong context. |
 | `useAuth` | `useContext(AuthContext)` + throw nếu thiếu Provider; trả về `AuthContextType`. |
 
 ---
@@ -877,11 +726,6 @@ File `auth-context.tsx` là một implementation đơn giản và hiệu quả c
 - ✅ Error handling chi tiết cho từng loại lỗi
 - ✅ Performance optimization với `useCallback`
 - ✅ Type safety với TypeScript
-- ✅ Separation of concerns: refresh token ở interceptor, context chỉ quản lý state
-
-**Điểm quan trọng**: Refresh token được xử lý tự động ở axios interceptor (`src/lib/api/client.ts`), không phải trong auth context. Đây là một thiết kế tốt vì:
-- Tự động và transparent cho tất cả API calls
-- Tránh duplicate logic
-- Separation of concerns rõ ràng
+- ✅ Code đơn giản, dễ đọc và maintain
 
 Khi đã nắm các phần trên, bạn có thể mở rộng (thêm `logout`, `login` vào context, hoặc kết nối với route protection) dựa trên cùng một mô hình.
