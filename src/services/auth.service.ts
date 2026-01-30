@@ -163,14 +163,30 @@ class AuthService extends BaseService {
    */
   async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
     try {
-      // Backend trả về trực tiếp RefreshTokenResponse (không có wrapper)
-      const response = await apiClient.post<RefreshTokenResponse>(
+      const response = await apiClient.post<ApiResponse<RefreshTokenResponse>>(
         API_ENDPOINTS.AUTH.REFRESH,
         { refreshToken }
       );
-      
-      // Backend trả về trực tiếp object
-      const data = response.data as RefreshTokenResponse;
+
+      const responseData = response.data;
+      let data: RefreshTokenResponse;
+
+      // Parse response: { success, statusCode, message, data: RefreshTokenResponse } hoặc trực tiếp RefreshTokenResponse
+      if (
+        responseData &&
+        typeof responseData === "object" &&
+        "success" in responseData &&
+        "data" in responseData
+      ) {
+        const apiResponse = responseData as ApiResponse<RefreshTokenResponse>;
+        if (apiResponse.data) {
+          data = apiResponse.data;
+        } else {
+          throw new Error(apiResponse.message || "No data in refresh token response");
+        }
+      } else {
+        data = responseData as RefreshTokenResponse;
+      }
       
       // Lưu tokens mới (token rotation)
       if (data.access_token) {
