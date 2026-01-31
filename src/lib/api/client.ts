@@ -89,7 +89,10 @@ apiClient.interceptors.response.use(
     };
 
     // Handle 401 Unauthorized - Try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 401 từ request đăng nhập (sai mật khẩu) → không refresh, không redirect, chỉ reject
+    const isLoginRequest =
+      originalRequest.url?.includes("/auth/login") ?? false;
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
       // Nếu đang refresh, đợi refresh xong
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

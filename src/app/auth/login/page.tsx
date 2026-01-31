@@ -34,7 +34,7 @@ import {
   setUserInfo,
 } from "@/lib/api/token";
 import type { LoginResponse, User } from "@/types/api";
-import { TIMEOUT } from "@/lib/constants";
+import { TIMEOUT, getApiBaseUrl, API_ENDPOINTS } from "@/lib/constants";
 
 const loginSchema = z.object({
   email: z.string().email("Email không hợp lệ"),
@@ -137,7 +137,10 @@ export default function LoginPage() {
   );
 
   const handleGoogleSignIn = () => {
-    setError("Google login sẽ được tích hợp với backend NestJS");
+    setError("");
+    const apiBase = getApiBaseUrl();
+    const googleAuthUrl = `${apiBase}${API_ENDPOINTS.AUTH.GOOGLE}`;
+    window.location.href = googleAuthUrl;
   };
 
   return (

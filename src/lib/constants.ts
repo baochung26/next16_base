@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
     LOGOUT: "/auth/logout",
     REFRESH: "/auth/refresh",
     VERIFY_EMAIL: "/auth/verify-email",
+    GOOGLE: "/auth/google", // GET - redirect to Google OAuth
   },
   USERS: {
     PROFILE: "/users/profile", // GET current user profile
@@ -34,6 +35,11 @@ export const API_ENDPOINTS = {
   },
 } as const;
 
+/** Base URL của backend API (dùng cho redirect OAuth, v.v.) */
+export function getApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+}
+
 // Route Paths
 export const ROUTES = {
   HOME: "/",
@@ -44,6 +50,7 @@ export const ROUTES = {
     REGISTER: "/auth/register",
     FORGOT_PASSWORD: "/auth/forgot-password",
     RESET_PASSWORD: "/auth/reset-password",
+    CALLBACK: "/auth/callback", // OAuth callback (Google)
   },
   DASHBOARD: {
     ROOT: "/dashboard",

@@ -37,6 +37,7 @@ export class BaseService {
 
   /**
    * Handle API error with proper typing
+   * Hỗ trợ: AxiosError, Error, object { message, statusCode } (từ interceptor)
    */
   protected handleError(error: unknown): never {
     if (error instanceof AxiosError) {
@@ -53,6 +54,16 @@ export class BaseService {
         message: error.message,
         statusCode: 0,
       } as ApiError;
+    }
+
+    // Object từ interceptor: { message, statusCode, errors }
+    if (
+      error &&
+      typeof error === "object" &&
+      "message" in error &&
+      typeof (error as ApiError).message === "string"
+    ) {
+      throw error as ApiError;
     }
 
     throw {
