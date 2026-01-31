@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   ADMIN: {
     USERS: {
       LIST: "/admin/users",
+      CREATE: "/users", // POST - admin only
       BY_ID: (id: string) => `/admin/users/${id}`,
       UPDATE: (id: string) => `/admin/users/${id}`, // PATCH
       ACTIVATE: (id: string) => `/admin/users/${id}/activate`,

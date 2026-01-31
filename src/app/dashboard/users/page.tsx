@@ -21,7 +21,9 @@ import { UserTable } from "@/components/dashboard/users/user-table";
 import { UserPagination } from "@/components/dashboard/users/user-pagination";
 import { UserEditDialog } from "@/components/dashboard/users/user-edit-dialog";
 import { UserDeleteDialog } from "@/components/dashboard/users/user-delete-dialog";
+import { UserAddDialog } from "@/components/dashboard/users/user-add-dialog";
 import type { UserFormData } from "@/components/dashboard/users/user-edit-dialog";
+import type { AddUserFormData } from "@/components/dashboard/users/user-add-dialog";
 import {
   APP_CONFIG,
   DEBOUNCE,
@@ -60,6 +62,7 @@ export default function UsersPage() {
   } | null>(null);
 
   // Dialog states
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -220,6 +223,39 @@ export default function UsersPage() {
     [selectedUser, toast]
   );
 
+  const onAddSubmit = useCallback(
+    async (data: AddUserFormData) => {
+      setIsSubmitting(true);
+      try {
+        const newUser = await userService.createUser({
+          email: data.email,
+          password: data.password,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          role: data.role,
+        });
+        setUsers((prev) => [newUser, ...prev]);
+        setPaginationMeta((prev) =>
+          prev ? { ...prev, total: prev.total + 1 } : prev
+        );
+        toast({
+          title: "Tạo thành công",
+          description: `Đã tạo người dùng ${data.firstName} ${data.lastName}`,
+        });
+        setAddDialogOpen(false);
+      } catch (error) {
+        toast({
+          title: "Lỗi",
+          description: getErrorMessage(error),
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [toast, paginationMeta, itemsPerPage]
+  );
+
   const onDeleteConfirm = useCallback(async () => {
     if (!selectedUser) return;
 
@@ -275,7 +311,7 @@ export default function UsersPage() {
               Quản lý và theo dõi tất cả người dùng trong hệ thống
             </p>
           </div>
-          <Button>
+          <Button onClick={() => setAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Thêm người dùng
           </Button>
@@ -354,6 +390,14 @@ export default function UsersPage() {
             onPageChange={setCurrentPage}
           />
         </Card>
+
+        {/* Add User Dialog */}
+        <UserAddDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
+          onSubmit={onAddSubmit}
+          isSubmitting={isSubmitting}
+        />
 
         {/* Edit Dialog */}
         <UserEditDialog

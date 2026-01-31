@@ -57,6 +57,15 @@ export interface ResetPasswordResponse {
   message: string;
 }
 
+// Create user (admin only) - request body
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: "user" | "admin";
+}
+
 // User types - matches backend format
 export interface User {
   id: string;

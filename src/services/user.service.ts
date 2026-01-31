@@ -1,7 +1,7 @@
 import apiClient, { ApiResponse } from "@/lib/api/client";
 import { BaseService } from "@/lib/api/base.service";
 import { API_ENDPOINTS } from "@/lib/constants";
-import type { User } from "@/types/api";
+import type { User, CreateUserRequest } from "@/types/api";
 
 /**
  * User Service - Handles all user related API calls
@@ -99,6 +99,19 @@ class UserService extends BaseService {
           },
         }
       )
+    );
+  }
+
+  /**
+   * Create user (admin only)
+   *
+   * @param data - User data: email, password, firstName, lastName, role
+   * @returns Created user data
+   * @throws {ApiError} If user is not admin or request fails (e.g. email exists)
+   */
+  async createUser(data: CreateUserRequest): Promise<User> {
+    return this.safeCall(() =>
+      apiClient.post<ApiResponse<User>>(API_ENDPOINTS.ADMIN.USERS.CREATE, data)
     );
   }
 
