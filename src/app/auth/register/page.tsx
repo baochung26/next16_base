@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { AuthGuestGuard } from "@/components/auth";
 import {
   Card,
   CardContent,
@@ -43,6 +45,7 @@ const registerSchema = z
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { loading, user, showContent } = useRedirectIfAuthenticated();
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,6 +59,10 @@ export default function RegisterPage() {
       confirmPassword: "",
     },
   });
+
+  if (!showContent) {
+    return <AuthGuestGuard loading={loading} user={user} />;
+  }
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     setIsLoading(true);

@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { AuthGuestGuard } from "@/components/auth";
 import {
   Card,
   CardContent,
@@ -41,6 +43,7 @@ const resetPasswordSchema = z
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { loading, user, showContent } = useRedirectIfAuthenticated();
   const token = searchParams.get("token");
 
   const [error, setError] = useState<string>("");
@@ -60,6 +63,10 @@ export default function ResetPasswordPage() {
       setError("Token không hợp lệ");
     }
   }, [token]);
+
+  if (!showContent) {
+    return <AuthGuestGuard loading={loading} user={user} />;
+  }
 
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     if (!token) {

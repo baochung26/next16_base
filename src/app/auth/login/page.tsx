@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { AuthGuestGuard } from "@/components/auth";
 import {
   Card,
   CardContent,
@@ -58,20 +60,12 @@ function extractUserFromLoginResponse(response: LoginResponse): User {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, setUser } = useAuth();
+  const { setUser } = useAuth();
+  const { loading, user, showContent } = useRedirectIfAuthenticated();
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Redirect nếu đã đăng nhập
-  useEffect(() => {
-    if (user && !isLoading) {
-      router.replace("/");
-      router.refresh();
-    }
-  }, [user, isLoading, router]);
 
   // Hiển thị thông báo đăng ký thành công
   useEffect(() => {
@@ -142,6 +136,10 @@ export default function LoginPage() {
     const googleAuthUrl = `${apiBase}${API_ENDPOINTS.AUTH.GOOGLE}`;
     window.location.href = googleAuthUrl;
   };
+
+  if (!showContent) {
+    return <AuthGuestGuard loading={loading} user={user} />;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
