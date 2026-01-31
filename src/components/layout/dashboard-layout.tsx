@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { clearTokens, clearAuthCookies } from "@/lib/api/token";
 import {
   getUserDisplayName,
@@ -238,6 +239,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
               <Link href="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
