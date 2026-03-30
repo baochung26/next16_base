@@ -24,14 +24,16 @@ src/
 Tạo file `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 ```
+
+**Lưu ý:** Client sẽ gọi trực tiếp backend API (NestJS), không qua Next.js API routes.
 
 ### API Client
 
 API client được cấu hình với:
 
-- Base URL từ `NEXT_PUBLIC_API_URL`
+- Base URL từ `NEXT_PUBLIC_API_URL` (gọi trực tiếp backend)
 - Timeout: 30 giây
 - Auto-attach JWT token từ localStorage
 - Error handling tự động
@@ -180,7 +182,16 @@ try {
 Sửa trong `src/lib/api/client.ts`:
 
 ```typescript
-baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
+const getBaseURL = () => {
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+  return backendUrl;
+};
+```
+
+Hoặc thay đổi trong `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://your-backend-url/api/v1
 ```
 
 ### Thêm custom headers

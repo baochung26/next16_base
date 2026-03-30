@@ -1,5 +1,6 @@
 import apiClient, { ApiResponse } from "@/lib/api/client";
 import { BaseService } from "@/lib/api/base.service";
+import { API_ENDPOINTS } from "@/lib/constants";
 import type {
   LoginRequest,
   LoginResponse,
@@ -9,6 +10,7 @@ import type {
   ForgotPasswordResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
+  RefreshTokenResponse,
 } from "@/types/api";
 
 /**
@@ -27,37 +29,58 @@ import type {
  */
 class AuthService extends BaseService {
   /**
-   * Login with username/email and password
+   * Login with email and password
    *
-   * @param credentials - Login credentials (identifier can be email or username)
-   * @returns Login response with user data and tokens
+   * @param credentials - Login credentials (email and password)
+   * @returns Login response with user data and access token
    * @throws {ApiError} If login fails
    *
    * @example
    * ```ts
    * const response = await authService.login({
-   *   identifier: 'user@example.com',
+   *   email: 'user@example.com',
    *   password: 'password123'
    * });
-   * // response.user contains user data
-   * // response.accessToken and refreshToken are automatically stored
+   * // response contains user data (id, email, firstName, lastName, role, etc.)
+   * // response.access_token is automatically stored
    * ```
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
       const response = await apiClient.post<ApiResponse<LoginResponse>>(
-        "/auth/login",
+        API_ENDPOINTS.AUTH.LOGIN,
         credentials
       );
-      const data = this.handleResponse(response);
+
+      const responseData = response.data;
+      let data: LoginResponse;
+
+      // Parse response: { success, statusCode, message, data: LoginResponse } hoặc trực tiếp LoginResponse
+      if (
+        responseData &&
+        typeof responseData === "object" &&
+        "success" in responseData &&
+        "data" in responseData
+      ) {
+        const apiResponse = responseData as ApiResponse<LoginResponse>;
+        if (apiResponse.data) {
+          data = apiResponse.data;
+        } else {
+          throw new Error(apiResponse.message || "No data in response");
+        }
+      } else {
+        data = responseData as LoginResponse;
+      }
 
       // Store tokens if provided
-      if (data.accessToken) {
-        const { setAccessToken, setRefreshToken } =
-          await import("@/lib/api/token");
-        setAccessToken(data.accessToken);
-        if (data.refreshToken) {
-          setRefreshToken(data.refreshToken);
+      if (data.access_token) {
+        const { setAccessToken, setRefreshToken } = await import(
+          "@/lib/api/token"
+        );
+        setAccessToken(data.access_token);
+
+        if (data.refresh_token) {
+          setRefreshToken(data.refresh_token);
         }
       }
 
@@ -77,7 +100,7 @@ class AuthService extends BaseService {
    */
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     return this.safeCall(() =>
-      apiClient.post<ApiResponse<RegisterResponse>>("/auth/register", data)
+      apiClient.post<ApiResponse<RegisterResponse>>(API_ENDPOINTS.AUTH.REGISTER, data)
     );
   }
 
@@ -93,7 +116,7 @@ class AuthService extends BaseService {
   ): Promise<ForgotPasswordResponse> {
     return this.safeCall(() =>
       apiClient.post<ApiResponse<ForgotPasswordResponse>>(
-        "/auth/forgot-password",
+        API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
         data
       )
     );
@@ -111,7 +134,7 @@ class AuthService extends BaseService {
   ): Promise<ResetPasswordResponse> {
     return this.safeCall(() =>
       apiClient.post<ApiResponse<ResetPasswordResponse>>(
-        "/auth/reset-password",
+        API_ENDPOINTS.AUTH.RESET_PASSWORD,
         data
       )
     );
@@ -124,7 +147,7 @@ class AuthService extends BaseService {
    */
   async logout(): Promise<void> {
     try {
-      await apiClient.post("/auth/logout");
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
     } catch (error) {
       this.handleError(error);
       throw error;
@@ -134,16 +157,53 @@ class AuthService extends BaseService {
   /**
    * Refresh access token
    *
-   * @param refreshToken - Refresh token
-   * @returns New access token
+   * @param refreshToken - Refresh token (format: "user-id:token-id")
+   * @returns New access token and refresh token (token rotation)
    * @throws {ApiError} If refresh fails
    */
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
-    return this.safeCall(() =>
-      apiClient.post<ApiResponse<{ accessToken: string }>>("/auth/refresh", {
-        refreshToken,
-      })
-    );
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    try {
+      const response = await apiClient.post<ApiResponse<RefreshTokenResponse>>(
+        API_ENDPOINTS.AUTH.REFRESH,
+        { refreshToken }
+      );
+
+      const responseData = response.data;
+      let data: RefreshTokenResponse;
+
+      // Parse response: { success, statusCode, message, data: RefreshTokenResponse } hoặc trực tiếp RefreshTokenResponse
+      if (
+        responseData &&
+        typeof responseData === "object" &&
+        "success" in responseData &&
+        "data" in responseData
+      ) {
+        const apiResponse = responseData as ApiResponse<RefreshTokenResponse>;
+        if (apiResponse.data) {
+          data = apiResponse.data;
+        } else {
+          throw new Error(apiResponse.message || "No data in refresh token response");
+        }
+      } else {
+        data = responseData as RefreshTokenResponse;
+      }
+      
+      // Lưu tokens mới (token rotation)
+      if (data.access_token) {
+        const { setAccessToken, setRefreshToken } = await import("@/lib/api/token");
+        setAccessToken(data.access_token);
+        
+        // Lưu refresh token mới (token cũ đã bị revoke)
+        if (data.refresh_token) {
+          setRefreshToken(data.refresh_token);
+        }
+      }
+      
+      return data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
   }
 
   /**
@@ -155,7 +215,7 @@ class AuthService extends BaseService {
    */
   async verifyEmail(token: string): Promise<{ message: string }> {
     return this.safeCall(() =>
-      apiClient.post<ApiResponse<{ message: string }>>("/auth/verify-email", {
+      apiClient.post<ApiResponse<{ message: string }>>(API_ENDPOINTS.AUTH.VERIFY_EMAIL, {
         token,
       })
     );

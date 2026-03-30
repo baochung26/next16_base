@@ -3,6 +3,15 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
 } from "axios";
+import { authService } from "@/services";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAccessToken,
+  setRefreshToken,
+  setAccessTokenCookie,
+  clearTokens,
+} from "./token";
 
 // API Response types
 export interface ApiResponse<T = any> {
@@ -18,19 +27,10 @@ export interface ApiError {
   errors?: Record<string, string[]>;
 }
 
-// Determine base URL - use local API if NEXT_PUBLIC_USE_FAKE_API is true
+// Determine base URL - call backend API directly
 const getBaseURL = () => {
-  // If using fake API (local Next.js API routes)
-  if (
-    process.env.NEXT_PUBLIC_USE_FAKE_API === "true" ||
-    !process.env.NEXT_PUBLIC_API_URL
-  ) {
-    return typeof window !== "undefined"
-      ? "/api" // Client-side: use relative path
-      : "http://localhost:3000/api"; // Server-side: use full URL
-  }
-  // Use real backend API
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+  return backendUrl;
 };
 
 // Create axios instance
@@ -42,12 +42,29 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
+// Flag để tránh infinite loop khi refresh token cũng fail
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+};
+
 // Request interceptor - Add auth token
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     if (config.headers) {
-      // Use JWT token from localStorage
-      const { getAccessToken } = await import("./token");
       const token = getAccessToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -61,24 +78,93 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle errors
+// Response interceptor - Handle errors và auto-refresh token
 apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error: AxiosError<ApiError>) => {
-    // Handle error responses
+  async (error: AxiosError<ApiError>) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    // Handle 401 Unauthorized - Try to refresh token
+    // 401 từ request đăng nhập (sai mật khẩu) → không refresh, không redirect, chỉ reject
+    const isLoginRequest =
+      originalRequest.url?.includes("/auth/login") ?? false;
+    if (error.response?.status === 401 && !originalRequest._retry && !isLoginRequest) {
+      // Nếu đang refresh, đợi refresh xong
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers && token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshTokenValue = getRefreshToken();
+
+      // Nếu không có refresh token → logout
+      if (!refreshTokenValue) {
+        processQueue(error, null);
+        isRefreshing = false;
+        clearTokens();
+        if (typeof window !== "undefined") {
+          window.location.href = "/auth/login";
+        }
+        return Promise.reject(error);
+      }
+
+      try {
+        // Gọi refresh token API
+        const refreshResponse = await authService.refreshToken(refreshTokenValue);
+        const newAccessToken = refreshResponse.access_token;
+
+        if (newAccessToken) {
+          // Lưu tokens mới (refresh token đã được lưu trong authService.refreshToken)
+          setAccessToken(newAccessToken);
+          setAccessTokenCookie(newAccessToken);
+
+          // Update header cho request ban đầu
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          }
+
+          // Process queue và retry request
+          processQueue(null, newAccessToken);
+          isRefreshing = false;
+
+          return apiClient(originalRequest);
+        } else {
+          throw new Error("No access token in refresh response");
+        }
+      } catch (refreshError) {
+        // Refresh token cũng hết hạn → logout
+        processQueue(refreshError, null);
+        isRefreshing = false;
+        clearTokens();
+        if (typeof window !== "undefined") {
+          window.location.href = "/auth/login";
+        }
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // Handle other errors
     if (error.response) {
       const { status, data } = error.response;
 
-      // Handle specific status codes
       switch (status) {
-        case 401:
-          // Unauthorized - redirect to login
-          if (typeof window !== "undefined") {
-            window.location.href = "/auth/login";
-          }
-          break;
         case 403:
           // Forbidden
           console.error("Access forbidden");

@@ -22,7 +22,7 @@ const authRoutes = [
   ROUTES.AUTH.RESET_PASSWORD,
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get token from cookie
@@ -44,9 +44,12 @@ export function middleware(request: NextRequest) {
   }
 
   // Redirect to home if accessing auth route with token
-  if (isAuthRoute && token) {
-    return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
-  }
+  // Lưu ý: Chỉ redirect nếu đang ở login/register, không redirect nếu user muốn logout
+  // Cho phép vào login page để user có thể xem lại hoặc logout nếu cần
+  // Client-side sẽ handle việc redirect nếu đã login
+  // if (isAuthRoute && token) {
+  //   return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
+  // }
 
   return NextResponse.next();
 }
@@ -55,12 +58,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public files (public folder)
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -7,8 +7,7 @@ import type { User } from "@/types/api";
 
 /**
  * Get current user from token
- * This is a client-side hook for fake API
- * When using real backend, this will call /users/me endpoint
+ * Calls /users/me endpoint to get user info
  */
 export function useCurrentUser() {
   const [user, setUser] = useState<User | null>(null);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,9 +23,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { userService, authService } from "@/services";
+import { Label } from "@/components/ui/label";
+import { userService } from "@/services";
 import { getErrorMessage } from "@/lib/api/error-handler";
-import { clearTokens } from "@/lib/api/token";
+import { setUserInfo } from "@/lib/api/token";
 import { useAuth } from "@/contexts/auth-context";
 import {
   User,
@@ -40,25 +40,16 @@ import {
   Key,
   Shield,
 } from "lucide-react";
-import type { User as UserType } from "@/types/api";
-
-// Profile update schema
+// Profile: PATCH /users/profile chỉ cho phép firstName, lastName (email/role/isActive chỉ admin)
 const profileSchema = z.object({
-  name: z.string().min(1, "Vui lòng nhập tên").optional().or(z.literal("")),
-  username: z
-    .string()
-    .min(3, "Username phải có ít nhất 3 ký tự")
-    .max(30, "Username không được quá 30 ký tự")
-    .optional()
-    .or(z.literal("")),
-  email: z.string().email("Email không hợp lệ"),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
 });
 
-// Password change schema
+// Đổi mật khẩu: PATCH /users/profile với { password } (min 6). Không gửi currentPassword.
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Vui lòng nhập mật khẩu hiện tại"),
-    newPassword: z.string().min(6, "Mật khẩu mới phải có ít nhất 6 ký tự"),
+    newPassword: z.string().min(6, "Mật khẩu mới tối thiểu 6 ký tự"),
     confirmPassword: z.string().min(1, "Vui lòng xác nhận mật khẩu"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -70,7 +61,6 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function ProfilePage() {
-  const router = useRouter();
   const { user, loading, setUser, refetch } = useAuth();
   const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
   const [profileError, setProfileError] = useState("");
@@ -82,16 +72,14 @@ export default function ProfilePage() {
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: "",
-      username: "",
-      email: "",
+      firstName: "",
+      lastName: "",
     },
   });
 
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
-      currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
@@ -100,9 +88,8 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       profileForm.reset({
-        name: user.name || "",
-        username: user.username || "",
-        email: user.email,
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
       });
     }
   }, [user, profileForm]);
@@ -112,12 +99,12 @@ export default function ProfilePage() {
     setProfileSuccess(false);
 
     try {
-      const updatedUser = await userService.updateProfile({
-        name: data.name || undefined,
-        username: data.username || undefined,
-        email: data.email,
-      });
+      const payload: { firstName?: string; lastName?: string } = {};
+      if (data.firstName?.trim()) payload.firstName = data.firstName.trim();
+      if (data.lastName?.trim()) payload.lastName = data.lastName.trim();
+      const updatedUser = await userService.updateProfile(payload);
       setUser(updatedUser);
+      setUserInfo(updatedUser); // đồng bộ cache localStorage để refresh vẫn thấy tên mới
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
     } catch (error) {
@@ -130,10 +117,7 @@ export default function ProfilePage() {
     setPasswordSuccess(false);
 
     try {
-      await userService.changePassword({
-        currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
-      });
+      await userService.updateProfile({ password: data.newPassword });
       setPasswordSuccess(true);
       passwordForm.reset();
       setTimeout(() => setPasswordSuccess(false), 3000);
@@ -210,7 +194,7 @@ export default function ProfilePage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.image}
-                        alt={user.name || user.email}
+                        alt={[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -237,7 +221,7 @@ export default function ProfilePage() {
                   </label>
                 </div>
                 <CardTitle className="text-xl">
-                  {user.name || user.username || "User"}
+                  {[user.firstName, user.lastName].filter(Boolean).join(" ") || user.email}
                 </CardTitle>
                 <CardDescription>{user.email}</CardDescription>
               </CardHeader>
@@ -248,19 +232,10 @@ export default function ProfilePage() {
                     <span className="text-muted-foreground">Email:</span>
                     <span className="font-medium">{user.email}</span>
                   </div>
-                  {user.username && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Username:</span>
-                      <span className="font-medium">{user.username}</span>
-                    </div>
-                  )}
                   <div className="flex items-center gap-2 text-sm">
                     <Shield className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Provider:</span>
-                    <span className="font-medium capitalize">
-                      {user.provider}
-                    </span>
+                    <span className="text-muted-foreground">Vai trò:</span>
+                    <span className="font-medium capitalize">{user.role}</span>
                   </div>
                 </div>
               </CardContent>
@@ -318,54 +293,47 @@ export default function ProfilePage() {
                         </div>
                       )}
 
-                      <FormField
-                        control={profileForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tên</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Nhập tên của bạn"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="firstName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tên</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Văn" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={profileForm.control}
+                          name="lastName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Họ</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Nguyễn" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
 
-                      <FormField
-                        control={profileForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Nhập username" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="your@email.com"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input
+                          type="email"
+                          value={user?.email ?? ""}
+                          disabled
+                          className="bg-muted cursor-not-allowed"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Email không thể thay đổi tại đây. Liên hệ admin nếu cần.
+                        </p>
+                      </div>
                     </CardContent>
                     <CardFooter>
                       <Button
@@ -414,24 +382,6 @@ export default function ProfilePage() {
                           Đổi mật khẩu thành công!
                         </div>
                       )}
-
-                      <FormField
-                        control={passwordForm.control}
-                        name="currentPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Mật khẩu hiện tại</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="password"
-                                placeholder="Nhập mật khẩu hiện tại"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
 
                       <FormField
                         control={passwordForm.control}

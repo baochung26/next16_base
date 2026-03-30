@@ -1,71 +1,23 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import {
-  getUserByEmailOrUsername,
-  getUserByEmail,
-  getUserByProviderId,
-  createUser,
-  updateUser,
-  verifyPassword,
-} from "./db";
+
+// Note: NextAuth is currently disabled in this project
+// This file is kept for potential future use with Google OAuth
+// For now, authentication uses token-based approach with backend API
 
 // Build providers array conditionally
 const providers: any[] = [
-  CredentialsProvider({
-    name: "Credentials",
-    credentials: {
-      identifier: { label: "Username or Email", type: "text" },
-      password: { label: "Password", type: "password" },
-    },
-    async authorize(credentials) {
-      try {
-        if (!credentials?.identifier || !credentials?.password) {
-          return null;
-        }
-
-        const user = getUserByEmailOrUsername(credentials.identifier);
-        if (!user || !user.password) {
-          return null;
-        }
-
-        const isValid = await verifyPassword(
-          credentials.password,
-          user.password
-        );
-        if (!isValid) {
-          return null;
-        }
-
-        // Ensure all required fields are present
-        const userData = {
-          id: user.id,
-          email: user.email || "",
-          name: user.name || user.username || null,
-          image: user.image || null,
-          username: user.username || null,
-        };
-
-        // Validate required fields
-        if (!userData.id || !userData.email) {
-          return null;
-        }
-
-        return userData;
-      } catch (error) {
-        console.error("Error in authorize:", error);
-        return null;
-      }
-    },
-  }),
+  // CredentialsProvider disabled - using token-based auth instead
+  // Uncomment and implement if you need NextAuth credentials provider
 ];
 
 // Only add Google provider if credentials are provided
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_SECRET) {
   providers.push(
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientSecret: process.env.GOOGLE_SECRET,
     })
   );
 }
@@ -74,39 +26,8 @@ export const authOptions: NextAuthOptions = {
   providers,
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
-        // Check if user exists by provider ID
-        let dbUser = getUserByProviderId("google", account.providerAccountId);
-
-        if (!dbUser) {
-          // Check if user exists by email
-          if (user.email) {
-            dbUser = getUserByEmail(user.email);
-          }
-
-          // Create new user if doesn't exist
-          if (!dbUser) {
-            dbUser = await createUser({
-              email: user.email || "",
-              name: user.name || profile?.name || undefined,
-              image: user.image || profile?.picture || undefined,
-              provider: "google",
-              providerId: account.providerAccountId,
-              emailVerified: new Date(),
-            });
-          } else {
-            // Update existing user with Google provider info
-            const { updateUser: updateUserFn } = await import("./db");
-            dbUser = await updateUserFn(dbUser.id, {
-              provider: "google",
-              providerId: account.providerAccountId,
-              image: user.image || profile?.picture || dbUser.image,
-            });
-          }
-        }
-
-        user.id = dbUser.id;
-      }
+      // Implement Google OAuth sign-in logic here if needed
+      // For now, NextAuth is disabled
       return true;
     },
     async jwt({ token, user, account }) {
@@ -147,7 +68,6 @@ export const authOptions: NextAuthOptions = {
         return session;
       } catch (error) {
         console.error("Error in session callback:", error);
-        // Return a minimal valid session
         return {
           user: {
             id: (token?.id as string) || "",

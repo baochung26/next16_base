@@ -1,6 +1,7 @@
 /**
  * Token management utilities
- * Handles storing and retrieving JWT tokens
+ * Handles storing and retrieving JWT tokens (localStorage) and
+ * accessToken cookie for server-side (middleware, RSC).
  */
 
 import { APP_CONFIG } from "@/lib/constants";
@@ -8,6 +9,15 @@ import { APP_CONFIG } from "@/lib/constants";
 const ACCESS_TOKEN_KEY = APP_CONFIG.SESSION.TOKEN_KEY;
 const REFRESH_TOKEN_KEY = APP_CONFIG.SESSION.REFRESH_TOKEN_KEY;
 const USER_INFO_KEY = APP_CONFIG.SESSION.USER_INFO_KEY;
+const COOKIE_MAX_AGE = APP_CONFIG.SESSION.COOKIE_MAX_AGE;
+
+function isHttps(): boolean {
+  return typeof window !== "undefined" && window.location?.protocol === "https:";
+}
+
+function cookieSecureSuffix(): string {
+  return isHttps() ? "; Secure" : "";
+}
 
 /**
  * Get access token from localStorage
@@ -22,7 +32,22 @@ export function getAccessToken(): string | null {
  */
 export function setAccessToken(token: string): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  try {
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    // Verify đã lưu thành công
+    const saved = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (!saved || saved !== token) {
+      console.error("Failed to save accessToken to localStorage");
+      throw new Error("Không thể lưu token vào localStorage");
+    }
+  } catch (error) {
+    console.error("Error saving accessToken to localStorage:", error);
+    if (error instanceof DOMException && error.code === 22) {
+      console.warn("localStorage is full or disabled. Token will not persist.");
+    } else {
+      throw error;
+    }
+  }
 }
 
 /**
@@ -42,13 +67,37 @@ export function setRefreshToken(token: string): void {
 }
 
 /**
- * Remove all tokens
+ * Remove all tokens (localStorage only)
  */
 export function clearTokens(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_INFO_KEY);
+}
+
+/**
+ * Set accessToken in cookie for server-side (middleware, RSC).
+ * - path=/, max-age, SameSite=Lax
+ * - Secure when on HTTPS (production)
+ * Lưu ý: Không thể dùng HttpOnly khi set qua document.cookie; muốn HttpOnly cần set
+ * từ API Route qua header Set-Cookie.
+ */
+export function setAccessTokenCookie(token: string): void {
+  if (typeof window === "undefined") return;
+  const secure = cookieSecureSuffix();
+  document.cookie = `accessToken=${token}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
+}
+
+/**
+ * Xóa cookie auth (accessToken, refreshToken).
+ * Dùng cùng path và Secure (khi HTTPS) để trình duyệt khớp và xóa đúng.
+ */
+export function clearAuthCookies(): void {
+  if (typeof window === "undefined") return;
+  const secure = cookieSecureSuffix();
+  document.cookie = `accessToken=; path=/; max-age=0${secure}`;
+  document.cookie = `refreshToken=; path=/; max-age=0${secure}`;
 }
 
 /**
@@ -59,16 +108,32 @@ export function hasToken(): boolean {
 }
 
 /**
- * Store user info temporarily (for fake API)
- * In real backend, user info will come from JWT token
+ * Store user info temporarily (cache)
+ * User info comes from backend API /users/me
  */
 export function setUserInfo(user: any): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+  try {
+    localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
+    // Verify đã lưu thành công
+    const saved = localStorage.getItem(USER_INFO_KEY);
+    if (!saved) {
+      console.error("Failed to save userInfo to localStorage");
+      throw new Error("Không thể lưu thông tin user vào localStorage");
+    }
+  } catch (error) {
+    console.error("Error saving userInfo to localStorage:", error);
+    // Nếu localStorage bị block (incognito, private mode), vẫn tiếp tục nhưng log warning
+    if (error instanceof DOMException && error.code === 22) {
+      console.warn("localStorage is full or disabled. User info will not persist.");
+    } else {
+      throw error;
+    }
+  }
 }
 
 /**
- * Get user info from localStorage
+ * Get user info from localStorage (cache)
  */
 export function getUserInfo(): any | null {
   if (typeof window === "undefined") return null;

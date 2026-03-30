@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { AuthGuestGuard } from "@/components/auth";
 import {
   Card,
   CardContent,
@@ -30,20 +32,11 @@ import { getErrorMessage } from "@/lib/api/error-handler";
 
 const registerSchema = z
   .object({
-    username: z
-      .string()
-      .min(3, "Username phải có ít nhất 3 ký tự")
-      .max(30, "Username không được quá 30 ký tự")
-      .regex(
-        /^[a-zA-Z0-9_]+$/,
-        "Username chỉ được chứa chữ cái, số và dấu gạch dưới"
-      )
-      .optional()
-      .or(z.literal("")),
+    firstName: z.string().min(1, "Vui lòng nhập tên"),
+    lastName: z.string().min(1, "Vui lòng nhập họ"),
     email: z.string().email("Email không hợp lệ"),
     password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
     confirmPassword: z.string().min(6, "Vui lòng xác nhận mật khẩu"),
-    name: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",
@@ -52,19 +45,24 @@ const registerSchema = z
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { loading, user, showContent } = useRedirectIfAuthenticated();
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
-      name: "",
     },
   });
+
+  if (!showContent) {
+    return <AuthGuestGuard loading={loading} user={user} />;
+  }
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     setIsLoading(true);
@@ -72,10 +70,10 @@ export default function RegisterPage() {
 
     try {
       await authService.register({
-        username: values.username || undefined,
         email: values.email,
         password: values.password,
-        name: values.name || undefined,
+        firstName: values.firstName,
+        lastName: values.lastName,
       });
 
       // Redirect to login page
@@ -122,13 +120,31 @@ export default function RegisterPage() {
 
               <FormField
                 control={form.control}
-                name="username"
+                name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username (tùy chọn)</FormLabel>
+                    <FormLabel>Tên</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="username"
+                        placeholder="Văn"
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Họ</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Nguyễn"
                         {...field}
                         disabled={isLoading}
                       />
@@ -148,24 +164,6 @@ export default function RegisterPage() {
                       <Input
                         type="email"
                         placeholder="email@example.com"
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Họ và tên (tùy chọn)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Nguyễn Văn A"
                         {...field}
                         disabled={isLoading}
                       />

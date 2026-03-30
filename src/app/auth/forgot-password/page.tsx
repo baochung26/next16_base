@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { AuthGuestGuard } from "@/components/auth";
 import {
   Card,
   CardContent,
@@ -32,6 +34,7 @@ const forgotPasswordSchema = z.object({
 });
 
 export default function ForgotPasswordPage() {
+  const { loading, user, showContent } = useRedirectIfAuthenticated();
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +60,10 @@ export default function ForgotPasswordPage() {
       setIsLoading(false);
     }
   };
+
+  if (!showContent) {
+    return <AuthGuestGuard loading={loading} user={user} />;
+  }
 
   if (success) {
     return (

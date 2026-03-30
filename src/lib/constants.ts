@@ -13,15 +13,32 @@ export const API_ENDPOINTS = {
     LOGOUT: "/auth/logout",
     REFRESH: "/auth/refresh",
     VERIFY_EMAIL: "/auth/verify-email",
+    GOOGLE: "/auth/google", // GET - redirect to Google OAuth
   },
   USERS: {
-    ME: "/users/me",
-    BY_ID: (id: string) => `/users/${id}`,
-    UPDATE_PROFILE: "/users/me",
+    PROFILE: "/users/profile", // GET current user profile
+    BY_ID: (id: string) => `/users/${id}`, // GET user by ID
+    UPDATE_PROFILE: "/users/profile", // PATCH update profile
     CHANGE_PASSWORD: "/users/change-password",
     UPLOAD_AVATAR: "/users/avatar",
   },
+  ADMIN: {
+    USERS: {
+      LIST: "/admin/users",
+      CREATE: "/users", // POST - admin only
+      BY_ID: (id: string) => `/admin/users/${id}`,
+      UPDATE: (id: string) => `/admin/users/${id}`, // PATCH
+      ACTIVATE: (id: string) => `/admin/users/${id}/activate`,
+      DEACTIVATE: (id: string) => `/admin/users/${id}/deactivate`,
+      SEARCH: "/admin/users/search",
+    },
+  },
 } as const;
+
+/** Base URL của backend API (dùng cho redirect OAuth, v.v.) */
+export function getApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
+}
 
 // Route Paths
 export const ROUTES = {
@@ -33,6 +50,7 @@ export const ROUTES = {
     REGISTER: "/auth/register",
     FORGOT_PASSWORD: "/auth/forgot-password",
     RESET_PASSWORD: "/auth/reset-password",
+    CALLBACK: "/auth/callback", // OAuth callback (Google)
   },
   DASHBOARD: {
     ROOT: "/dashboard",
@@ -63,6 +81,8 @@ export const APP_CONFIG = {
     TOKEN_KEY: "accessToken",
     REFRESH_TOKEN_KEY: "refreshToken",
     USER_INFO_KEY: "userInfo",
+    /** Cookie max-age (seconds). 86400 = 24h. Used for accessToken cookie. */
+    COOKIE_MAX_AGE: 86400,
   },
 } as const;
 
@@ -118,4 +138,35 @@ export const DATE_FORMATS = {
   DISPLAY_WITH_TIME: "DD/MM/YYYY HH:mm",
   API: "YYYY-MM-DD",
   DATETIME: "YYYY-MM-DDTHH:mm:ss",
+} as const;
+
+// Debounce Delays (milliseconds)
+export const DEBOUNCE = {
+  SEARCH: 300, // Search input debounce
+  INPUT: 500, // General input debounce
+} as const;
+
+// Timeout Values (milliseconds)
+export const TIMEOUT = {
+  SUCCESS_MESSAGE: 5000, // Success message auto-hide
+  TOAST_REMOVE: 5000, // Toast auto-remove
+} as const;
+
+// User Roles
+export const USER_ROLES = {
+  USER: "user",
+  ADMIN: "admin",
+} as const;
+
+// Filter Values
+export const FILTER_VALUES = {
+  ALL: "all",
+  TRUE: "true",
+  FALSE: "false",
+} as const;
+
+// Sort Order
+export const SORT_ORDER = {
+  ASC: "ASC",
+  DESC: "DESC",
 } as const;

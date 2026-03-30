@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
+import { useRedirectIfAuthenticated } from "@/hooks/use-redirect-if-authenticated";
+import { AuthGuestGuard } from "@/components/auth";
 import {
   Card,
   CardContent,
@@ -25,90 +28,118 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
+import { authService } from "@/services";
+import { getErrorMessage } from "@/lib/api/error-handler";
+import {
+  setAccessTokenCookie,
+  setRefreshToken,
+  setUserInfo,
+} from "@/lib/api/token";
+import type { LoginResponse, User } from "@/types/api";
+import { TIMEOUT, getApiBaseUrl, API_ENDPOINTS } from "@/lib/constants";
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, "Vui lòng nhập username hoặc email"),
+  email: z.string().email("Email không hợp lệ"),
   password: z.string().min(1, "Vui lòng nhập mật khẩu"),
 });
 
+/**
+ * Helper function để extract User từ LoginResponse
+ */
+function extractUserFromLoginResponse(response: LoginResponse): User {
+  return {
+    id: response.id,
+    email: response.email,
+    firstName: response.firstName,
+    lastName: response.lastName,
+    role: response.role,
+    isActive: response.isActive,
+    createdAt: response.createdAt,
+    updatedAt: response.updatedAt,
+  };
+}
+
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const { setUser } = useAuth();
+  const { loading, user, showContent } = useRedirectIfAuthenticated();
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Hiển thị thông báo đăng ký thành công
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
       setSuccess(true);
-      // Clear the success message after 5 seconds
-      setTimeout(() => setSuccess(false), 5000);
+      const timer = setTimeout(
+        () => setSuccess(false),
+        TIMEOUT.SUCCESS_MESSAGE
+      );
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      identifier: "",
+      email: "",
       password: "",
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
-    setIsLoading(true);
-    setError("");
+  // Lưu thông tin đăng nhập vào storage và context
+  const saveAuthData = useCallback(
+    (response: LoginResponse) => {
+      const userInfo = extractUserFromLoginResponse(response);
 
-    try {
-      // Use fake API (will be replaced with real NestJS backend later)
-      const { authService } = await import("@/services");
-      const response = await authService.login({
-        identifier: values.identifier,
-        password: values.password,
-      });
+      // authService.login() đã lưu access_token vào localStorage rồi
+      // Chỉ cần lưu cookie và refresh token (nếu có)
+      setAccessTokenCookie(response.access_token);
 
-      // Store token and user info
-      if (response.accessToken) {
-        const { setAccessToken, setRefreshToken, setUserInfo } =
-          await import("@/lib/api/token");
-        setAccessToken(response.accessToken);
-        if (response.refreshToken) {
-          setRefreshToken(response.refreshToken);
-        }
-        // Store user info temporarily (for fake API)
-        if (response.user) {
-          setUserInfo(response.user);
-        }
-
-        // Set cookie for server-side access
-        document.cookie = `accessToken=${response.accessToken}; path=/; max-age=86400; SameSite=Lax`;
-        if (response.refreshToken) {
-          document.cookie = `refreshToken=${response.refreshToken}; path=/; max-age=604800; SameSite=Lax`;
-        }
+      if (response.refresh_token) {
+        setRefreshToken(response.refresh_token);
       }
 
-      // Redirect to home
-      router.push("/");
-      router.refresh();
-    } catch (err) {
-      const { getErrorMessage } = await import("@/lib/api/error-handler");
-      setError(getErrorMessage(err));
-    } finally {
-      setIsLoading(false);
-    }
+      // Lưu user info và cập nhật context
+      setUserInfo(userInfo);
+      setUser(userInfo);
+    },
+    [setUser]
+  );
+
+  const onSubmit = useCallback(
+    async (values: z.infer<typeof loginSchema>) => {
+      setIsLoading(true);
+      setError("");
+
+      try {
+        const response = await authService.login({
+          email: values.email,
+          password: values.password,
+        });
+
+        // authService.login() đã validate và throw error nếu không có access_token
+        saveAuthData(response);
+        form.reset(); // Reset form sau khi login thành công
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [saveAuthData, form]
+  );
+
+  const handleGoogleSignIn = () => {
+    setError("");
+    const apiBase = getApiBaseUrl();
+    const googleAuthUrl = `${apiBase}${API_ENDPOINTS.AUTH.GOOGLE}`;
+    window.location.href = googleAuthUrl;
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      // Google OAuth will be handled by backend later
-      setError("Google login sẽ được tích hợp với backend NestJS");
-      setIsLoading(false);
-    } catch (err) {
-      setError("Có lỗi xảy ra khi đăng nhập với Google");
-      setIsLoading(false);
-    }
-  };
+  if (!showContent) {
+    return <AuthGuestGuard loading={loading} user={user} />;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -151,13 +182,15 @@ export default function LoginPage() {
 
               <FormField
                 control={form.control}
-                name="identifier"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username hoặc Email</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="username hoặc email@example.com"
+                        type="email"
+                        placeholder="email@example.com"
+                        autoComplete="email"
                         {...field}
                         disabled={isLoading}
                       />
@@ -177,6 +210,7 @@ export default function LoginPage() {
                       <Input
                         type="password"
                         placeholder="••••••••"
+                        autoComplete="current-password"
                         {...field}
                         disabled={isLoading}
                       />

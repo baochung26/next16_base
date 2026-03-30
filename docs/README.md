@@ -6,6 +6,25 @@ Tài liệu đầy đủ cho project development.
 
 ### 🚀 Getting Started
 
+- **[Learning Guide](./LEARNING_GUIDE.md)** - Hướng dẫn học React & Next.js
+  - React rendering model
+  - Server vs Client Components
+  - Routing & Layout
+  - Data flow & State management
+  - Hooks & Lifecycle
+  - Performance optimization
+
+- **[Walkthrough](./WALKTHROUGH.md)** - Luồng hoạt động thực tế trong project
+  - User login flow từng bước
+  - File nào xử lý, data lưu ở đâu
+  - Request flow và state management
+  - Ví dụ thực tế với code
+
+- **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Học React/Next qua `auth-context.tsx`
+  - Từng dòng: "use client", import, Context, Provider, useAuth
+  - useState, useEffect, refetch, luồng hoạt động
+  - Cách dùng trong component, khái niệm cần nắm
+
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Hướng dẫn bắt đầu phát triển
   - Setup project
   - Development workflow
@@ -21,6 +40,12 @@ Tài liệu đầy đủ cho project development.
   - Data flow
   - Authentication flow
   - API architecture
+
+- **[Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md)** - Lưu trữ token & bảo mật
+  - localStorage vs cookie, mục đích từng nơi
+  - Tại sao Next.js cần cả hai (server không có localStorage)
+  - So sánh React thuần vs Next.js
+  - Rủi ro lộ lọt cookie, khuyến nghị và checklist
 
 - **[Coding Standards](./CODING_STANDARDS.md)** - Chuẩn code
   - TypeScript standards
@@ -75,7 +100,31 @@ Tài liệu đầy đủ cho project development.
   - API issues
   - Authentication issues
 
+- **[Optimization Guide](./OPTIMIZATION_GUIDE.md)** - Tối ưu source code
+  - Tách component lớn thành nhỏ
+  - Performance optimization (memoization)
+  - Custom hooks
+  - Giảm code duplication
+  - Type safety
+  - Checklist tối ưu
+
+- **[Server vs Client Fetching](./SERVER_VS_CLIENT_FETCHING.md)** - Khi nào fetch data ở đâu
+  - Tại sao project hiện tại dùng Client Components
+  - Khi nào nên dùng Server Components
+  - Hybrid approach
+  - Ví dụ cụ thể cho project
+
+- **[Why Both localStorage and Cookie](./WHY_BOTH_LOCALSTORAGE_AND_COOKIE.md)** - Tại sao cần cả hai
+  - Có thể chỉ dùng cookie không?
+  - Ưu điểm localStorage so với cookie
+  - So sánh chi tiết
+  - Khi nào nên dùng gì
+
 ### 📖 Reference
+
+- **[Auth Context – Giải thích chi tiết](./AUTH_CONTEXT_EXPLAINED.md)** - Phân tích `auth-context.tsx`
+
+- **[Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md)** - localStorage, cookie, Next.js vs React, rủi ro lộ lọt
 
 - **[State Management Guide](./STATE_MANAGEMENT.md)** - Quản lý state
   - Current approach
@@ -83,7 +132,6 @@ Tài liệu đầy đủ cho project development.
   - Best practices
   - Future improvements
 
-- **[MOCK_USERS.md](./MOCK_USERS.md)** - Mock user data
   - Test accounts
   - User roles
   - Password information
@@ -126,6 +174,10 @@ Tài liệu đầy đủ cho project development.
 | Fix error           | [Troubleshooting Guide](./TROUBLESHOOTING.md)               |
 | Deploy              | [Deployment Guide](./DEPLOYMENT.md)                         |
 | Git workflow        | [Git Workflow](./GIT_WORKFLOW.md)                           |
+| Auth storage & security | [Auth Storage & Security](./AUTH_STORAGE_AND_SECURITY.md) |
+| Optimize code      | [Optimization Guide](./OPTIMIZATION_GUIDE.md)              |
+| Server vs Client fetching | [Server vs Client Fetching](./SERVER_VS_CLIENT_FETCHING.md) |
+| Why localStorage + cookie | [Why Both localStorage and Cookie](./WHY_BOTH_LOCALSTORAGE_AND_COOKIE.md) |
 
 ### Code Examples
 

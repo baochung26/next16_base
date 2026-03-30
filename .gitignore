@@ -56,5 +56,3 @@ Thumbs.db
 logs
 *.log
 
-# Database files (mock)
-src/lib/db/users.json

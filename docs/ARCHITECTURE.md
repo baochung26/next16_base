@@ -35,7 +35,7 @@ Project sử dụng **Next.js 16 App Router** với kiến trúc **layered archi
                   ↓
 ┌─────────────────────────────────────┐
 │         External Services           │
-│    (Fake API / NestJS Backend)     │
+│         (NestJS Backend)            │
 └─────────────────────────────────────┘
 ```
 
@@ -274,10 +274,9 @@ Response
 ```typescript
 // Base URL determination
 const getBaseURL = () => {
-  if (NEXT_PUBLIC_USE_FAKE_API === "true") {
-    return "/api"; // Local Next.js routes
-  }
-  return NEXT_PUBLIC_API_URL; // NestJS backend
+  return typeof window !== "undefined"
+    ? "/api" // Client-side: Next.js API routes (proxy)
+    : "http://localhost:3000/api"; // Server-side: full URL
 };
 
 // Request interceptor

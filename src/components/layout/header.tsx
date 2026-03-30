@@ -13,8 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { isAdmin, getUserDisplayName, getUserInitials } from "@/lib/utils/auth";
-import { clearTokens } from "@/lib/api/token";
+import {
+  isAdminUser,
+  getUserDisplayName,
+  getUserInitials,
+} from "@/lib/utils/auth";
+import { clearTokens, clearAuthCookies } from "@/lib/api/token";
 import { useAuth } from "@/contexts/auth-context";
 
 export function Header() {
@@ -23,27 +27,27 @@ export function Header() {
 
   const handleSignOut = async () => {
     clearTokens();
-    // Clear cookies
-    document.cookie = "accessToken=; path=/; max-age=0";
-    document.cookie = "refreshToken=; path=/; max-age=0";
+    clearAuthCookies();
     setUser(null);
     router.push("/");
     router.refresh();
   };
 
-  const userIsAdmin = user
-    ? isAdmin(user.email, user.username || undefined)
-    : false;
+  const userIsAdmin = isAdminUser(user);
 
-  const displayName = user ? getUserDisplayName(user.name, user.email) : "";
+  const displayName = user
+    ? getUserDisplayName(user.email, user.firstName, user.lastName)
+    : "";
 
-  const userInitials = user ? getUserInitials(user.name, user.email) : "";
+  const userInitials = user
+    ? getUserInitials(user.email, user.firstName, user.lastName)
+    : "";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto relative flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo - Left side */}
-        <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center flex-shrink-0 z-10">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               NextApp
@@ -52,8 +56,8 @@ export function Header() {
         </div>
 
         {/* Navigation - Center (hidden on mobile) */}
-        <nav className="hidden md:flex items-center justify-center flex-1 px-4">
-          <div className="flex items-center space-x-1">
+        <nav className="hidden md:flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="flex items-center space-x-1 pointer-events-auto">
             <Link
               href="/"
               className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground rounded-md hover:bg-accent"
@@ -76,7 +80,7 @@ export function Header() {
         </nav>
 
         {/* Right side - Theme Toggle & Auth Buttons */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 z-10">
           <ThemeToggle />
           {loading ? (
             <div className="h-9 w-32 animate-pulse rounded-md bg-muted" />

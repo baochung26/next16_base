@@ -82,20 +82,17 @@ export const API_ENDPOINTS = {
 };
 ```
 
-### Step 3: Create API Route (Fake API)
+### Step 3: Implement Service Method
 
-Tạo API route trong `src/app/api/`:
+Thêm method vào service class để gọi trực tiếp backend API:
 
 ```typescript
-// src/app/api/users/me/route.ts
-import { NextResponse } from "next/server";
-import { requireServerAuth } from "@/lib/api/server-auth";
-import { getUserById } from "@/lib/db";
-
-export async function GET() {
-  try {
-    const user = await requireServerAuth();
-    const userData = await getUserById(user.id);
+// src/services/user.service.ts
+async getUserById(id: string): Promise<User> {
+  return this.safeCall(() =>
+    apiClient.get<ApiResponse<User>>(`/users/${id}`)
+  );
+}
 
     return NextResponse.json({
       success: true,
@@ -485,7 +482,7 @@ Trước khi hoàn thành feature:
 
 - [ ] Constants added
 - [ ] Types defined
-- [ ] API route created (fake API)
+- [ ] Service method implemented
 - [ ] Service methods implemented
 - [ ] Page component created
 - [ ] Navigation added

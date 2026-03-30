@@ -49,17 +49,10 @@ Template Next.js 16 hoàn chỉnh với authentication, UI components đẹp m�
    ```env
    NEXTAUTH_URL=http://localhost:3000
    NEXTAUTH_SECRET=your-secret-key-here
-   NEXT_PUBLIC_USE_FAKE_API=true
-   NEXT_PUBLIC_API_URL=http://localhost:3001/api
+   NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
    ```
 
-4. **Seed mock data (optional)**
-
-   ```bash
-   npm run seed
-   ```
-
-5. **Chạy development server**
+4. **Chạy development server**
 
    ```bash
    npm run dev
@@ -75,7 +68,6 @@ Template Next.js 16 hoàn chỉnh với authentication, UI components đẹp m�
 ```
 src/
 ├── app/                    # Next.js App Router pages
-│   ├── api/               # API routes
 │   ├── auth/              # Authentication pages
 │   ├── dashboard/        # Dashboard pages
 │   └── ...
@@ -85,7 +77,6 @@ src/
 │   └── ...
 ├── lib/                   # Utilities và helpers
 │   ├── api/              # API client và utilities
-│   ├── db/               # Database utilities (mock)
 │   └── ...
 ├── services/              # API service classes
 ├── hooks/                 # Custom React hooks
@@ -124,6 +115,21 @@ Xem [API_USAGE.md](./docs/API_USAGE.md) để biết thêm chi tiết.
 Xem [MOCK_USERS.md](./docs/MOCK_USERS.md) để biết thêm.
 
 ## 📚 Documentation
+
+### Learning Resources
+
+- **[Learning Guide](./docs/LEARNING_GUIDE.md)** - Hướng dẫn học React & Next.js qua project
+  - React rendering model (Server vs Client Components)
+  - Routing & Layout trong Next.js App Router
+  - Data flow và State management
+  - Hooks & Lifecycle
+  - Performance optimization
+
+- **[Walkthrough](./docs/WALKTHROUGH.md)** - Luồng hoạt động thực tế
+  - User login flow từng bước chi tiết
+  - File nào xử lý, data lưu ở đâu
+  - Request flow và state management
+  - Ví dụ thực tế với code từ project
 
 ### Core Documentation
 

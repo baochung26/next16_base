@@ -28,8 +28,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { clearTokens } from "@/lib/api/token";
-import { getUserDisplayName, getUserInitials } from "@/lib/utils/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { clearTokens, clearAuthCookies } from "@/lib/api/token";
+import {
+  getUserDisplayName,
+  getUserInitials,
+  isAdminUser,
+} from "@/lib/utils/auth";
 import { useAuth } from "@/contexts/auth-context";
 
 const menuItems = [
@@ -80,18 +85,64 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Check if user is admin and redirect if not
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push("/auth/login");
+      } else {
+        const userIsAdmin = isAdminUser(user);
+        // Debug: log user info to check role
+        if (process.env.NODE_ENV === "development") {
+          console.log("Dashboard access check:", {
+            user: {
+              id: user.id,
+              email: user.email,
+              role: user.role,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+            isAdmin: userIsAdmin,
+          });
+        }
+        if (!userIsAdmin) {
+          router.push("/");
+        }
+      }
+    }
+  }, [user, loading, router]);
+
   const handleLogout = () => {
     clearTokens();
-    document.cookie = "accessToken=; path=/; max-age=0";
-    document.cookie = "refreshToken=; path=/; max-age=0";
+    clearAuthCookies();
     setUser(null);
     router.push("/");
     router.refresh();
   };
 
-  const displayName = user ? getUserDisplayName(user.name, user.email) : "";
+  const displayName = user
+    ? getUserDisplayName(user.email, user.firstName, user.lastName)
+    : "";
 
-  const userInitials = user ? getUserInitials(user.name, user.email) : "";
+  const userInitials = user
+    ? getUserInitials(user.email, user.firstName, user.lastName)
+    : "";
+
+  // Show loading or redirect if not admin
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdminUser(user)) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -188,6 +239,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
               <Link href="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />

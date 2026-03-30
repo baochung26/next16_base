@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { requireServerAdmin } from "@/lib/api/server-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   Card,
@@ -18,13 +16,8 @@ import {
   XCircle,
 } from "lucide-react";
 
-export default async function OrdersPage() {
-  let user;
-  try {
-    user = await requireServerAdmin();
-  } catch (error) {
-    redirect("/auth/login");
-  }
+export default function OrdersPage() {
+  // Client-side DashboardLayout will handle authentication and admin check
 
   const orders = [
     {

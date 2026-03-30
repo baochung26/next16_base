@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { requireServerAdmin } from "@/lib/api/server-auth";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   Card,
@@ -11,13 +9,8 @@ import {
 import { BarChart3, TrendingUp, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default async function ReportsPage() {
-  let user;
-  try {
-    user = await requireServerAdmin();
-  } catch (error) {
-    redirect("/auth/login");
-  }
+export default function ReportsPage() {
+  // Client-side DashboardLayout will handle authentication and admin check
 
   return (
     <DashboardLayout>

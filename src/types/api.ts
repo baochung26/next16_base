@@ -1,36 +1,43 @@
 // Auth types
 export interface LoginRequest {
-  identifier: string; // username or email
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
-  user: {
-    id: string;
-    email: string;
-    username?: string;
-    name?: string;
-    image?: string;
-  };
-  accessToken?: string;
-  refreshToken?: string;
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  access_token: string;
+  refresh_token: string;
+}
+
+export interface RefreshTokenResponse {
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface RegisterRequest {
-  username?: string;
   email: string;
   password: string;
-  name?: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface RegisterResponse {
-  user: {
-    id: string;
-    email: string;
-    username?: string;
-    name?: string;
-  };
-  message: string;
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ForgotPasswordRequest {
@@ -50,25 +57,40 @@ export interface ResetPasswordResponse {
   message: string;
 }
 
-// User types
+// Create user (admin only) - request body
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: "user" | "admin";
+}
+
+// User types - matches backend format
 export interface User {
   id: string;
   email: string;
-  username?: string;
-  name?: string;
-  image?: string;
-  emailVerified?: Date;
-  provider: "credentials" | "google";
+  firstName: string;
+  lastName: string;
+  role: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  // Optional fields
+  username?: string;
+  image?: string;
+  emailVerified?: Date;
+  provider?: "credentials" | "google";
 }
 
-// Common API response
+// Common API response - matches backend format
 export interface ApiResponse<T = any> {
-  data?: T;
-  message?: string;
-  error?: string;
-  statusCode?: number;
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: T;
+  timestamp?: string;
+  path?: string;
 }
 
 export interface ApiError {
