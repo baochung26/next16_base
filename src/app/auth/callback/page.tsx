@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
@@ -50,43 +50,53 @@ export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setUser } = useAuth();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState<string>("");
 
-  useEffect(() => {
+  const callbackResult = useMemo(() => {
     const accessToken = searchParams.get("access_token");
     const refreshTokenParam = searchParams.get("refresh_token");
     const userParam = searchParams.get("user");
     const errorParam = searchParams.get("error");
 
     if (errorParam) {
-      setStatus("error");
-      setMessage(decodeURIComponent(errorParam) || "Đăng nhập thất bại.");
-      return;
+      return {
+        status: "error" as const,
+        message: decodeURIComponent(errorParam) || "Login failed.",
+      };
     }
 
     if (!accessToken) {
-      setStatus("error");
-      setMessage("Không nhận được token. Vui lòng thử đăng nhập lại.");
-      return;
-    }
-
-    setAccessToken(accessToken);
-    setAccessTokenCookie(accessToken);
-
-    if (refreshTokenParam) {
-      setRefreshToken(refreshTokenParam);
+      return {
+        status: "error" as const,
+        message: "No access token was returned. Please sign in again.",
+      };
     }
 
     const user = parseUserFromCallback(userParam);
-    if (user) {
-      setUserInfo(user);
-      setUser(user);
-    }
-    // Nếu backend không gửi user, AuthProvider.refetch() sẽ lấy từ GET /users/profile
+    return {
+      status: "success" as const,
+      message: "Login successful. Redirecting...",
+      accessToken,
+      refreshToken: refreshTokenParam,
+      user,
+    };
+  }, [searchParams]);
 
-    setStatus("success");
-    setMessage("Đăng nhập thành công. Đang chuyển hướng...");
+  useEffect(() => {
+    if (callbackResult.status !== "success") {
+      return;
+    }
+
+    setAccessToken(callbackResult.accessToken);
+    setAccessTokenCookie(callbackResult.accessToken);
+
+    if (callbackResult.refreshToken) {
+      setRefreshToken(callbackResult.refreshToken);
+    }
+
+    if (callbackResult.user) {
+      setUserInfo(callbackResult.user);
+      setUser(callbackResult.user);
+    }
 
     const timer = setTimeout(() => {
       router.replace(ROUTES.HOME);
@@ -94,43 +104,25 @@ export default function AuthCallbackPage() {
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [searchParams, setUser, router]);
+  }, [callbackResult, router, setUser]);
 
-  if (status === "loading") {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Đang xử lý đăng nhập</CardTitle>
-            <CardDescription>
-              Vui lòng đợi trong giây lát...
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center py-8">
-            <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (status === "error") {
+  if (callbackResult.status === "error") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
               <XCircle className="h-5 w-5" />
-              Đăng nhập thất bại
+              Login failed
             </CardTitle>
-            <CardDescription>{message}</CardDescription>
+            <CardDescription>{callbackResult.message}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button asChild className="w-full">
-              <Link href={ROUTES.AUTH.LOGIN}>Quay lại đăng nhập</Link>
+              <Link href={ROUTES.AUTH.LOGIN}>Back to sign in</Link>
             </Button>
             <Button variant="outline" asChild className="w-full">
-              <Link href={ROUTES.HOME}>Về trang chủ</Link>
+              <Link href={ROUTES.HOME}>Go to home</Link>
             </Button>
           </CardContent>
         </Card>
@@ -140,14 +132,14 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
-            <CheckCircle2 className="h-5 w-5" />
-            Đăng nhập thành công
-          </CardTitle>
-          <CardDescription>{message}</CardDescription>
-        </CardHeader>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <CheckCircle2 className="h-5 w-5" />
+              Login successful
+            </CardTitle>
+            <CardDescription>{callbackResult.message}</CardDescription>
+          </CardHeader>
         <CardContent className="flex justify-center py-6">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </CardContent>

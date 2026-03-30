@@ -6,6 +6,7 @@ import {
   ToastDescription,
   ToastProvider,
   ToastTitle,
+  type ToastProps,
   ToastViewport,
 } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +15,7 @@ import { CheckCircle2, XCircle, Info } from "lucide-react";
 export function Toaster() {
   const { toasts } = useToast();
 
-  const getIcon = (variant?: string) => {
+  const getIcon = (variant?: ToastProps["variant"] | null) => {
     switch (variant) {
       case "success":
         return (

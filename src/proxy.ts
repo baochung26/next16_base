@@ -34,7 +34,9 @@ export function proxy(request: NextRequest) {
   );
 
   // Check if route is auth route
-  const isAuthRoute = authRoutes.includes(pathname as any);
+  const isAuthRoute = authRoutes.includes(
+    pathname as (typeof authRoutes)[number]
+  );
 
   // Redirect to login if accessing protected route without token
   if (isProtectedRoute && !token) {
