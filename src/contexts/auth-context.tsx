@@ -57,8 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cachedUser) {
         // Map cached user to User type for immediate UI update
         const userData: User = {
-          id: cachedUser.id,
-          email: cachedUser.email,
+          id: cachedUser.id || "",
+          email: cachedUser.email || "",
           firstName: cachedUser.firstName || "",
           lastName: cachedUser.lastName || "",
           role: cachedUser.role || "user",

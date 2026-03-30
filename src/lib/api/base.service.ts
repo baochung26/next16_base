@@ -1,4 +1,4 @@
-import apiClient, { ApiResponse, ApiError } from "./client";
+import { ApiResponse, ApiError } from "./client";
 import { AxiosError } from "axios";
 
 /**
