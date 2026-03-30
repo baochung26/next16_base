@@ -5,6 +5,7 @@
  */
 
 import { APP_CONFIG } from "@/lib/constants";
+import type { User } from "@/types/api";
 
 const ACCESS_TOKEN_KEY = APP_CONFIG.SESSION.TOKEN_KEY;
 const REFRESH_TOKEN_KEY = APP_CONFIG.SESSION.REFRESH_TOKEN_KEY;
@@ -111,7 +112,7 @@ export function hasToken(): boolean {
  * Store user info temporarily (cache)
  * User info comes from backend API /users/me
  */
-export function setUserInfo(user: any): void {
+export function setUserInfo(user: Partial<User>): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(USER_INFO_KEY, JSON.stringify(user));
@@ -135,8 +136,13 @@ export function setUserInfo(user: any): void {
 /**
  * Get user info from localStorage (cache)
  */
-export function getUserInfo(): any | null {
+export function getUserInfo(): Partial<User> | null {
   if (typeof window === "undefined") return null;
   const userInfo = localStorage.getItem(USER_INFO_KEY);
-  return userInfo ? JSON.parse(userInfo) : null;
+  if (!userInfo) return null;
+  try {
+    return JSON.parse(userInfo) as Partial<User>;
+  } catch {
+    return null;
+  }
 }

@@ -31,17 +31,17 @@ export async function getServerUser(): Promise<User | null> {
 
       if (response.ok) {
         const json = await response.json();
-        const apiUser = json?.data || json;
+        const apiUser = (json?.data || json) as Partial<User>;
         return {
-          id: apiUser.id,
-          email: apiUser.email,
-          firstName: apiUser.firstName,
-          lastName: apiUser.lastName,
-          role: apiUser.role,
-          isActive: apiUser.isActive,
-          createdAt: apiUser.createdAt,
-          updatedAt: apiUser.updatedAt,
-        } as any as User;
+          id: apiUser.id || "",
+          email: apiUser.email || "",
+          firstName: apiUser.firstName || "",
+          lastName: apiUser.lastName || "",
+          role: apiUser.role || "user",
+          isActive: apiUser.isActive ?? true,
+          createdAt: apiUser.createdAt || new Date().toISOString(),
+          updatedAt: apiUser.updatedAt || new Date().toISOString(),
+        };
       }
     } catch (apiError) {
       // If backend API fails, return null (will be handled by caller)
@@ -73,13 +73,11 @@ export async function requireServerAuth(): Promise<User> {
  */
 export async function requireServerAdmin(): Promise<User> {
   const user = await requireServerAuth();
-  
-  // Check if user has role property (from API)
-  const userRole = (user as any).role;
+
   const userIsAdmin = isAdmin(
     user.email,
     user.username || undefined,
-    userRole || undefined
+    user.role
   );
   
   if (!userIsAdmin) {

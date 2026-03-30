@@ -22,9 +22,15 @@ export function isAdmin(
   // Fallback to email/username check (backward compatibility)
   if (!email && !username) return false;
 
-  return (
-    (email && ADMIN_CONFIG.EMAILS.includes(email.toLowerCase())) ||
-    (username && ADMIN_CONFIG.USERNAMES.includes(username.toLowerCase()))
+  const normalizedEmail = email?.toLowerCase();
+  const normalizedUsername = username?.toLowerCase();
+
+  const adminEmails = ADMIN_CONFIG.EMAILS as readonly string[];
+  const adminUsernames = ADMIN_CONFIG.USERNAMES as readonly string[];
+
+  return Boolean(
+    (normalizedEmail && adminEmails.includes(normalizedEmail)) ||
+      (normalizedUsername && adminUsernames.includes(normalizedUsername))
   );
 }
 
